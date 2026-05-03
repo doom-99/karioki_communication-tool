@@ -1,11 +1,5 @@
-<!-- LINEのような左右でのチャット形式に -->
-
-<!-- 背景色は6色まで -->
-
-<!-- 一人目が会議の「サーバー」のような役割を果たし完全な同期 -->
-
-<!-- なぞった時に小さく『辞書に登録』というボタン
- （ポップアップ）が浮かび上がり，それを押した時だけ開く -->
+<!-- Shift + Enterで改行
+ （<input> タグから複数行入力できる <textarea> タグへの変更） -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -82,9 +76,17 @@
         .meter-bar-bg { flex-grow: 1; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
         .meter-bar-fill { height: 100%; width: 0%; background: #4caf50; transition: width 0.05s linear, background-color 0.2s; }
 
-        .input-row { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
-        .input-row input[type="text"] { flex-grow: 1; margin-bottom: 0; min-width: 150px; }
+        /* ★ 変更: 入力欄をtextareaに合わせたデザインに変更 */
+        .input-row { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; flex-wrap: wrap; }
+        .input-row input[type="text"], .input-row textarea { flex-grow: 1; margin-bottom: 0; min-width: 150px; }
         
+        textarea#ttsInput {
+            resize: none; /* 手動サイズ変更を禁止 */
+            padding: 10px; border: 1px solid #ced4da; border-radius: 6px; 
+            font-size: 1em; line-height: 1.4; box-sizing: border-box; overflow-y: hidden;
+            font-family: inherit;
+        }
+
         input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; }
         button { background-color: #0d6efd; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s; white-space: nowrap; }
         button:hover { background-color: #0b5ed7; }
@@ -310,7 +312,8 @@
             <button id="stopBtn" class="stop-btn" style="display:none;">⏹️ 停止</button>
             <!-- ★ 追加: 待ってボタン -->
             <button id="waitBtn" class="wait-btn">🖐️ 待って</button>
-            <input type="text" id="ttsInput" placeholder="返答を入力 (Enterで送信)">
+            <!-- ★ 変更: input から複数行対応の textarea に変更 -->
+            <textarea id="ttsInput" rows="1" placeholder="返答を入力 (Enterで送信 / Shift+Enterで改行)"></textarea>
             <button id="speakBtn">🗣️ 送信</button>
         </div>
     </div>
@@ -834,12 +837,35 @@
         }
 
         speakBtn.onclick = speakAndLog;
-        ttsInput.addEventListener('keypress', (e) => {
+        
+        // --- ★ 変更: Enterで送信，Shift+Enterで改行，高さ自動調整 ---
+        
+        // 入力文字数や改行に合わせてテキストエリアの高さを自動調整
+        ttsInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // キー操作の判定
+        ttsInput.addEventListener('keydown', (e) => {
+            // 日本語変換中（エンターで漢字を確定した瞬間）は無視する
+            if (e.isComposing || e.keyCode === 229) return;
+
             if (e.key === 'Enter') {
-                e.preventDefault();
-                speakAndLog();
+                if (!e.shiftKey) {
+                    // Shiftが押されていない場合のみ送信
+                    e.preventDefault();
+                    speakAndLog();
+                    
+                    // 送信後に高さを1行分に戻す
+                    setTimeout(() => {
+                        ttsInput.style.height = 'auto';
+                    }, 10);
+                }
+                // Shiftが押されている場合は何もしない（標準機能でそのまま改行される）
             }
         });
+        // ----------------------------------------------------
 
         // --- ★ 新規：音量メーターの処理 ---
         const volumeMeter = document.getElementById('volumeMeter');
