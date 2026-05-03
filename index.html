@@ -12,8 +12,8 @@
         
         .header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
         /* ★ 変更: 通信パネルのデザイン（PCでは左側に幅を固定して表示） */
-        .sync-panel { background: #e3f2fd; padding: 10px 15px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 350px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }        .sync-summary { font-weight: bold; cursor: pointer; outline: none; padding: 5px 0; color: #0d47a1; }
-        .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
+        /* ★ 変更: 通信パネルの幅を細く（240px）してスリム化 */
+        .sync-panel { background: #e3f2fd; padding: 10px 15px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 240px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }        .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
         h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
         
         .invite-btn { background-color: #6c757d; padding: 4px 8px; font-size: 0.85em; margin-left: 5px; color: white; border: none; border-radius: 4px; cursor: pointer; }
@@ -141,25 +141,37 @@
     <!-- ★ 追加: ここから分割レイアウト用の箱（ラッパー）で囲む -->
     <div class="main-wrapper">
 
+        <!-- ★ 変更: (オフライン)を改行し、入力欄などを細いパネルに合わせて縦並びに最適化 -->
         <details class="sync-panel">
-            <summary class="sync-summary">
-                📡 通信・招待機能を開く <span id="syncStatusSummary" style="font-size: 0.85em; font-weight: normal; margin-left: 10px; color: #555;">(オフライン)</span>
+            <summary class="sync-summary" style="line-height: 1.4;">
+                📡 通信・招待機能を開く 
+                <!-- ★ 追加: display: block を使って下に落とし、少し字下げ(padding-left)する -->
+                <span id="syncStatusSummary" style="display: block; font-size: 0.85em; font-weight: normal; color: #555; margin-top: 4px; padding-left: 28px;">(オフライン)</span>
             </summary>
-            <div style="margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 10px;">
-                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-                    <div>あなたのID: <span id="myPeerId" class="sync-id">取得中...</span></div>
-                    <div>
-                        <button id="copyUrlBtn" class="invite-btn" style="display:none;">🔗 招待URLコピー</button>
-                        <button id="showQrBtn" class="invite-btn" style="display:none;">📱 QR表示</button>
+            <div style="margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 15px;">
+                
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 0.9em; color: #555;">あなたのID:</div>
+                    <div id="myPeerId" class="sync-id" style="margin-bottom: 10px; word-break: break-all;">取得中...</div>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="copyUrlBtn" class="invite-btn" style="display:none; margin:0; flex:1; padding: 6px 4px;">🔗 URLコピー</button>
+                        <button id="showQrBtn" class="invite-btn" style="display:none; margin:0; flex:1; padding: 6px 4px;">📱 QR表示</button>
                     </div>
                 </div>
-                <div style="width: 100%; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
-                    <input type="text" id="myNameInput" placeholder="あなたの名前 (例: Aさん)" style="width: 150px; padding: 6px;">
-                    <input type="text" id="targetPeerId" placeholder="相手のIDを入力" style="width: 150px; padding: 6px;">
-                    <button id="connectBtn" style="padding: 6px 12px; font-size: 0.9em;">接続</button>
+
+                <!-- ★ 細い画面に合わせて width: 100% で縦に並べる -->
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" id="myNameInput" placeholder="あなたの名前" style="width: 100%; padding: 8px;">
+                    <input type="text" id="targetPeerId" placeholder="相手のIDを入力" style="width: 100%; padding: 8px;">
+                    <button id="connectBtn" style="width: 100%; padding: 10px; font-size: 1em;">接続する</button>
                 </div>
-                <div id="syncStatus" style="width: 100%; font-size: 0.85em; color: #555; margin-top: 10px;">現在オフラインです（1人で使用中）</div>
-                <div id="qrContainer"><div id="qrcode"></div></div>
+                
+                <div id="syncStatus" style="width: 100%; font-size: 0.8em; color: #555; margin-top: 15px; text-align: center;">現在オフラインです</div>
+                
+                <div id="qrContainer">
+                    <div style="font-size: 0.85em; color: #555; font-weight: bold;">相手のスマホカメラで<br>読み取ってください</div>
+                    <div id="qrcode"></div>
+                </div>
             </div>
         </details>
 
