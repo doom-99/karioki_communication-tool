@@ -920,12 +920,17 @@
             startBtn.disabled = true;
         } else {
 
+            // ★ Androidかどうかを判定
+            const isAndroid = /Android/i.test(navigator.userAgent);
+
             // ★ Android対応の核心: 毎回新しいインスタンスを生成する関数
             function buildRecognition() {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const rec = new SpeechRecognition();
                 rec.lang = 'ja-JP';
-                rec.continuous = true;
+                // ★ Android Chrome は continuous: true にバグがあるため false にする
+                // false にすると1発話ごとにonendが確実に発火し、再起動ループが安定する
+                rec.continuous = isAndroid ? false : true;
                 rec.interimResults = true;
                 rec.maxAlternatives = 1;
 
@@ -966,6 +971,7 @@
 
                 rec.onerror = (event) => {
                     isApiActive = false;
+                    console.log("STTエラー:", event.error);
 
                     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
                         isUserListening = false;
@@ -976,14 +982,17 @@
                     }
                     if (event.error === 'aborted') return;
 
-                    // ★ no-speech / network等: インスタンスを作り直して再起動
-                    scheduleRestart();
+                    // audio-capture: マイクが他のアプリに占有されている（Androidで起きやすい）
+                    // → 少し長めに待ってから再起動
+                    const delay = (event.error === 'audio-capture') ? 2000 : 600;
+                    scheduleRestart(delay);
                 };
 
                 rec.onend = () => {
                     isApiActive = false;
                     if (!isUserListening) return;
-                    scheduleRestart();
+                    // ★ Androidはマイクの解放に時間がかかるため、再起動を少し遅らせる
+                    scheduleRestart(isAndroid ? 800 : 600);
                 };
 
                 return rec;
@@ -997,14 +1006,12 @@
                 restartTimer = setTimeout(() => {
                     restartTimer = null;
                     if (!isUserListening || isApiActive) return;
-                    // ★ ここで古いインスタンスを捨てて新しく作る（Android対応の核心）
                     recognition = buildRecognition();
                     try {
                         recognition.start();
                     } catch(e) {
                         console.log("再起動エラー:", e.message);
-                        // 失敗してもまた少し待って再試行
-                        scheduleRestart(1000);
+                        scheduleRestart(1500);
                     }
                 }, delay);
             }
