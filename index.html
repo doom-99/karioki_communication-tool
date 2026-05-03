@@ -1,5 +1,4 @@
-<!-- 会話ノートをメッセージ単位でHTMLレンダリング
-発言ごとに色分けや視覚的区切りができ，送信者ごとに背景色を変える -->
+<!--  -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -33,11 +32,14 @@
         .chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin-bottom: 10px; flex-shrink: 0; }
         h2 { font-size: 1.1rem; margin: 0; }
         
+        /* ★ 変更: チャットエリアをFlexboxにして並べやすくする */
         .chat-textarea { 
             flex-grow: 1; width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 5px; 
             border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; 
-            background-color: #fafafa; transition: border-color 0.2s; line-height: 1.4; 
-            overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; cursor: text;
+            background-color: #f0f4f8; /* 少しブルーグレーにしてよりチャットアプリらしく */
+            transition: border-color 0.2s; line-height: 1.4; 
+            overflow-y: auto; cursor: text;
+            display: flex; flex-direction: column; gap: 12px; /* メッセージ間の隙間 */
         }
         .chat-textarea:focus { outline: none; border-color: #0d6efd; background-color: #fff; }
         .chat-textarea:empty:before { content: attr(data-placeholder); color: #999; pointer-events: none; }
@@ -131,9 +133,29 @@
         .toggle-switch-label { display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; }
         .toggle-switch-label input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
 
-        .msg-bubble { border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; border-left: 3px solid; }
-        .msg-bubble .msg-name { font-weight: bold; font-size: 0.85em; display: block; margin-bottom: 2px; }
-        .msg-bubble .msg-text { white-space: pre-wrap; word-wrap: break-word; }
+        /* ★ 変更: LINE風の左右分割デザイン */
+        .msg-row { display: flex; width: 100%; }
+        .msg-row.right { justify-content: flex-end; }
+        .msg-row.left { justify-content: flex-start; }
+        
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
+        .msg-row.right .msg-wrapper { align-items: flex-end; }
+        .msg-row.left .msg-wrapper { align-items: flex-start; }
+
+        .msg-name { font-size: 0.75em; color: #666; margin-bottom: 4px; font-weight: bold; }
+        
+        .msg-bubble { 
+            padding: 8px 14px; 
+            border-radius: 16px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        /* 吹き出しのしっぽ（角を少し尖らせる演出） */
+        .msg-row.right .msg-bubble { border-top-right-radius: 2px; }
+        .msg-row.left .msg-bubble { border-top-left-radius: 2px; }
+
+        .msg-text { white-space: pre-wrap; word-wrap: break-word; display: block; color: #333; }
+
     </style>
     <!-- ★ 追加: WebRTC用のPeerJSライブラリ -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -323,18 +345,13 @@
                 currentFontSize = parseInt(localStorage.getItem('appFontSize'));
                 document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
             }
-            // ★ 新形式(配列)を優先、なければ旧形式(文字列)を移行
-            const savedNew = localStorage.getItem('chatMessages');
-            const savedOld = localStorage.getItem('chatHistory');
-            if (savedNew) {
+            // 保存されたメッセージ配列の読み込み
+            const savedMessages = localStorage.getItem('chatMessages');
+            if (savedMessages) {
                 try {
-                    chatMessages = JSON.parse(savedNew);
+                    chatMessages = JSON.parse(savedMessages);
                     renderMessages();
                 } catch(e) { chatMessages = []; }
-            } else if (savedOld) {
-                // 旧形式を1件のメッセージとして取り込む
-                addMessage('履歴', savedOld.trim(), 'stt');
-                localStorage.removeItem('chatHistory');
             }
             if(localStorage.getItem('ttsRate')) {
                 rateSlider.value = localStorage.getItem('ttsRate');
@@ -575,10 +592,17 @@
         function renderMessages() {
             chatLog.innerHTML = chatMessages.map((m, i) => {
                 const s = MSG_STYLES[m.type] || MSG_STYLES.stt;
-                return `<div class="msg-bubble" data-index="${i}" style="background:${s.bg};border-color:${s.border};">` +
-                    `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>` +
-                    `<span class="msg-text">${escapeHTML(m.text)}</span>` +
-                    `</div>`;
+                // ★ 追加: 相手(remote)は左、自分(tts/stt)は右に配置する判定
+                const alignClass = m.type === 'remote' ? 'left' : 'right';
+                // ★ 変更: 左右配置用のHTML構造（msg-row と msg-wrapper）で囲む
+                return `<div class="msg-row ${alignClass}">` +
+                       `<div class="msg-wrapper">` +
+                       `<span class="msg-name">${escapeHTML(m.name)}</span>` +
+                       `<div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border};">` +
+                       `<span class="msg-text">${escapeHTML(m.text)}</span>` +
+                       `</div>` +
+                       `</div>` +
+                       `</div>`;
             }).join('');
             chatLog.scrollTop = chatLog.scrollHeight;
         }
