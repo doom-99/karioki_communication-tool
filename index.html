@@ -2,6 +2,8 @@
 
 <!-- 背景色は6色まで -->
 
+<!-- 一人目が会議の「サーバー」のような役割を果たし完全な同期 -->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -461,6 +463,11 @@
                     // ★ 変更: 受信したデータに送信者の名前をつける
                     const senderName = data.name || '相手';
                     addMessage(senderName, data.text.trim(), 'remote');
+
+                    // ★ 追加: 受信したメッセージを、他の接続先（三人目など）にも自動転送（リレー）する
+                    connections.forEach(c => {
+                        if (c !== conn && c.open) c.send(data);
+                    });
                 }
                 // ★ 追加: 相手から「過去の履歴データ」を受け取った時の処理
                 else if (data.type === 'history') {
@@ -496,6 +503,11 @@
                         typingIndicator.style.display = 'none';
                         clearTimeout(typingTimeout);
                     }
+
+                    // ★ 追加: 「待って」の合図も、他の接続先へ自動転送（リレー）する
+                    connections.forEach(c => {
+                        if (c !== conn && c.open) c.send(data);
+                    });
                 }
             });
 
