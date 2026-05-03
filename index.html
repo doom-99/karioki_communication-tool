@@ -1,4 +1,5 @@
-<!-- PCでは通信設定パネルが画面左側に -->
+<!-- PCでは通信設定パネルが画面左側に
+ （横幅が狭いと上に） -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -176,8 +177,14 @@
         </details>
 
         <div class="chat-container">
+            <!-- ★ 変更: 会話ノートのヘッダーに環境音AIのスイッチを追加 -->
             <div class="chat-header">
-                <h2>💬 会話ノート</h2>
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <h2>💬 会話ノート</h2>
+                    <label class="toggle-switch-label" style="font-size: 0.85em; background: #fff3e0; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffcc80; color: #e65100;">
+                        <input type="checkbox" id="envSoundToggle"> 🔔 環境音AI
+                    </label>
+                </div>
                 <div style="display: flex; gap: 8px;">
                     <button id="copyChatBtn" class="action-btn">📋 コピー</button>
                     <button id="downloadChatBtn" class="action-btn">💾 保存</button>
@@ -591,11 +598,93 @@
             } catch (err) { console.log("マイク音量取得失敗", err); }
         }
 
-        // --- YAMNet環境音認識 (バックグラウンドでは実行しない想定) ---
-        // ★ 変更: 設定パネルのスイッチが無くなったため、現状はYAMNet機能を一時的に無効化しています。
-        // もし必要であれば、次回以降で「別タブでの起動」や「メイン画面の通信パネルへの移動」を検討します。
+        // --- ★ 追加: YAMNet環境音認識機能の復活 ---
+        const envSoundToggle = document.getElementById('envSoundToggle');
         const envSoundCaption = document.getElementById('envSoundCaption');
+        let isEnvSoundActive = false; let yamnetModel = null; let envAudioContext = null;
+        let audioProcessor = null; let envStream = null; let lastCaptionTime = 0;
 
+        const yamnetDict = {
+            16: "😄 笑い声", 18: "😢 泣き声", 20: "👶 赤ちゃんの泣き声", 55: "👏 拍手",
+            71: "🐶 犬の鳴き声", 72: "🐶 犬の鳴き声", 78: "🐱 猫の鳴き声", 80: "🐱 猫の鳴き声",
+            300: "🌧️ 雨の音", 318: "⏰ アラーム・警報", 322: "🚨 サイレン", 323: "🚑 救急車のサイレン",
+            324: "🚒 消防車のサイレン", 325: "🚓 パトカーのサイレン", 382: "🪟 ガラスの割れる音",
+            386: "🛎️ チャイム・インターホン", 388: "☎️ 電話の着信音", 393: "⏰ 目覚まし時計",
+            400: "🚪 ドアのノック", 430: "⌨️ タイピング音"
+        };
+
+        envSoundToggle.addEventListener('change', async (e) => {
+            isEnvSoundActive = e.target.checked;
+            if (isEnvSoundActive) {
+                showAudioCaption("⏳ AIモデル読込中...");
+                await startEnvironmentalSoundDetection();
+            } else {
+                stopEnvironmentalSoundDetection();
+            }
+        });
+
+        async function startEnvironmentalSoundDetection() {
+            try {
+                if (!yamnetModel) yamnetModel = await tf.loadGraphModel('https://tfhub.dev/google/tfjs-model/yamnet/tfjs/1', {fromTFHub: true});
+                envStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+                envAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                const source = envAudioContext.createMediaStreamSource(envStream);
+                audioProcessor = envAudioContext.createScriptProcessor(2048, 1, 1);
+                source.connect(audioProcessor); audioProcessor.connect(envAudioContext.destination);
+
+                showAudioCaption("✅ 環境音の監視を開始しました");
+                setTimeout(() => { envSoundCaption.style.display = 'none'; }, 3500);
+
+                let audioBuffer = new Float32Array(16000); let bufferIndex = 0; let isPredicting = false;
+
+                audioProcessor.onaudioprocess = (e) => {
+                    if (!isEnvSoundActive || isPredicting) return;
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    for (let i = 0; i < inputData.length; i++) if (bufferIndex < 8192) audioBuffer[bufferIndex++] = inputData[i];
+
+                    if (bufferIndex >= 8192) {
+                        isPredicting = true;
+                        const paddedSamples = new Float32Array(15600);
+                        paddedSamples.set(audioBuffer.slice(0, 8192));
+                        bufferIndex = 0; 
+                        setTimeout(() => {
+                            tf.tidy(() => {
+                                const inputTensor = tf.tensor1d(paddedSamples);
+                                const results = yamnetModel.execute(inputTensor);
+                                const scores = Array.isArray(results) ? results[0] : results;
+                                const maxScoresOverTime = scores.max(0);
+                                const topClass = maxScoresOverTime.argMax().dataSync()[0];
+                                const topScore = maxScoresOverTime.max().dataSync()[0];
+
+                                const now = Date.now();
+                                if (now - lastCaptionTime > 3000) {
+                                    if (topScore > 0.05 && yamnetDict[topClass]) {
+                                        showAudioCaption(`🔔 ${yamnetDict[topClass]}`); lastCaptionTime = now;
+                                    } else if (topScore > 0.05 && [49, 50, 51, 56, 57, 58, 424, 425].includes(topClass)) {
+                                        showAudioCaption(`👏 突発音（拍手・叩く音など）`); lastCaptionTime = now;
+                                    }
+                                }
+                            });
+                            isPredicting = false;
+                        }, 0);
+                    }
+                };
+            } catch (err) { alert("マイクの権限がないか、エラーが発生しました。"); envSoundToggle.checked = false; }
+        }
+
+        function stopEnvironmentalSoundDetection() {
+            if (audioProcessor) { audioProcessor.disconnect(); audioProcessor = null; }
+            if (envAudioContext) { envAudioContext.close(); envAudioContext = null; }
+            if (envStream) { envStream.getTracks().forEach(track => track.stop()); envStream = null; }
+            envSoundCaption.style.display = 'none';
+        }
+
+        function showAudioCaption(text) {
+            envSoundCaption.textContent = text; envSoundCaption.style.display = 'block';
+            envSoundCaption.style.animation = 'none'; envSoundCaption.offsetHeight; 
+            envSoundCaption.style.animation = 'fadeInOut 3s forwards';
+        }
+        // --------------------------------------------------------
         // --- 文字起こし (STT) ---
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
