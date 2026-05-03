@@ -928,9 +928,7 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const rec = new SpeechRecognition();
                 rec.lang = 'ja-JP';
-                // ★ Android Chrome は continuous: true にバグがあるため false にする
-                // false にすると1発話ごとにonendが確実に発火し、再起動ループが安定する
-                rec.continuous = isAndroid ? false : true;
+                rec.continuous = true; // Androidも true に戻す（音量メーター競合は解決済み）
                 rec.interimResults = true;
                 rec.maxAlternatives = 1;
 
@@ -1023,6 +1021,11 @@
                 }
             });
 
+            // ★ Androidでは音量メーターのUIごと非表示にする
+            if (isAndroid) {
+                document.querySelector('.meter-container').style.display = 'none';
+            }
+            
             startBtn.onclick = () => {
                 isUserListening = true;
                 if (!isAndroid) initVolumeMeter(); // ★ Androidでは音量メーターを起動しない
