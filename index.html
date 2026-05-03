@@ -259,6 +259,9 @@
     </div>
 
     <script>
+        // ★ Androidかどうかを判定
+        const isAndroid = /Android/i.test(navigator.userAgent);
+
         // --- ★ 追加: 通信機能 (WebRTC / PeerJS) ---
         // --- ★ 変更: 通信機能と名前設定 ---
         let peer = null;
@@ -309,6 +312,12 @@
 
         // --- ★ 変更: URLの解析と自動接続、QRコード生成 ---
         window.addEventListener('DOMContentLoaded', () => {
+
+            // ★ Androidではメーターを最初から非表示
+            if (isAndroid) {
+                document.querySelector('.meter-container').style.display = 'none';
+            }
+
             peer = new Peer(); 
             
             // URLに「?room=ID」が含まれているかチェック
@@ -920,9 +929,6 @@
             startBtn.disabled = true;
         } else {
 
-            // ★ Androidかどうかを判定
-            const isAndroid = /Android/i.test(navigator.userAgent);
-
             // ★ Android対応の核心: 毎回新しいインスタンスを生成する関数
             function buildRecognition() {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -982,7 +988,7 @@
 
                     // audio-capture: マイクが他のアプリに占有されている（Androidで起きやすい）
                     // → 少し長めに待ってから再起動
-                    const delay = (event.error === 'audio-capture') ? 2000 : 600;
+                    const delay = (event.error === 'audio-capture') ? 1000 : 250;
                     scheduleRestart(delay);
                 };
 
@@ -990,7 +996,7 @@
                     isApiActive = false;
                     if (!isUserListening) return;
                     // ★ Androidはマイクの解放に時間がかかるため、再起動を少し遅らせる
-                    scheduleRestart(isAndroid ? 800 : 600);
+                    scheduleRestart(isAndroid ? 250 : 600);
                 };
 
                 return rec;
@@ -1025,7 +1031,7 @@
             if (isAndroid) {
                 document.querySelector('.meter-container').style.display = 'none';
             }
-            
+
             startBtn.onclick = () => {
                 isUserListening = true;
                 if (!isAndroid) initVolumeMeter(); // ★ Androidでは音量メーターを起動しない
