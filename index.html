@@ -1,4 +1,4 @@
-<!-- スマホの音声認識問題の修正 -->
+<!--  -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -129,6 +129,10 @@
         }
         .toggle-switch-label { display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; }
         .toggle-switch-label input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
+
+        .msg-bubble { border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; border-left: 3px solid; }
+        .msg-bubble .msg-name { font-weight: bold; font-size: 0.85em; display: block; margin-bottom: 2px; }
+        .msg-bubble .msg-text { white-space: pre-wrap; word-wrap: break-word; }
     </style>
     <!-- ★ 追加: WebRTC用のPeerJSライブラリ -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -237,7 +241,7 @@
         <!-- ★ 追加: 相手に表示されるタイピング通知バー -->
         <div id="typingIndicator" class="typing-indicator"></div>
         
-        <div id="chatLog" class="chat-textarea" contenteditable="true" data-placeholder="ここに会話の履歴が表示されます... (クリックして編集可能)"></div>
+        <div id="chatLog" class="chat-textarea" contenteditable="false" data-placeholder="ここに会話の履歴が表示されます... (クリックして編集可能)"></div>
         <div id="sttInterim"></div>
 
         <!-- ★ 新規：音量メーターのUI -->
@@ -318,9 +322,18 @@
                 currentFontSize = parseInt(localStorage.getItem('appFontSize'));
                 document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
             }
-            if(localStorage.getItem('chatHistory')) {
-                chatHistory = localStorage.getItem('chatHistory');
-                updateChatLogDisplay();
+            // ★ 新形式(配列)を優先、なければ旧形式(文字列)を移行
+            const savedNew = localStorage.getItem('chatMessages');
+            const savedOld = localStorage.getItem('chatHistory');
+            if (savedNew) {
+                try {
+                    chatMessages = JSON.parse(savedNew);
+                    renderMessages();
+                } catch(e) { chatMessages = []; }
+            } else if (savedOld) {
+                // 旧形式を1件のメッセージとして取り込む
+                addMessage('履歴', savedOld.trim(), 'stt');
+                localStorage.removeItem('chatHistory');
             }
             if(localStorage.getItem('ttsRate')) {
                 rateSlider.value = localStorage.getItem('ttsRate');
@@ -419,7 +432,7 @@
 
                 // ★ 追加: 接続が完了した瞬間に，自分の持っている会話履歴を相手に送信する
                 if (chatHistory.trim() !== '') {
-                    conn.send({ type: 'history', text: chatHistory });
+                    conn.send({ type: 'history', messages: chatMessages });
                 }
             });
 
@@ -427,19 +440,15 @@
                 if (data.type === 'text') {
                     // ★ 変更: 受信したデータに送信者の名前をつける
                     const senderName = data.name || '相手';
-                    chatHistory += senderName + "： " + data.text + "\n\n";
-                    if (typeof speakingQueueCount !== 'undefined' && speakingQueueCount === 0) {
-                        updateChatLogDisplay();
-                    }
-                    localStorage.setItem('chatHistory', chatHistory);
+                    addMessage(senderName, data.text.trim(), 'remote');
                 }
                 // ★ 追加: 相手から「過去の履歴データ」を受け取った時の処理
                 else if (data.type === 'history') {
-                    // 自分の履歴よりも相手の履歴データの方が長い場合（＝自分が途中参加した場合）にのみ，画面を上書きして同期する
-                    if (data.text && data.text.length > chatHistory.length) {
-                        chatHistory = data.text;
-                        updateChatLogDisplay();
-                        localStorage.setItem('chatHistory', chatHistory);
+                    // 相手の履歴の方が多い場合だけ上書き
+                    if (data.messages && data.messages.length > chatMessages.length) {
+                        chatMessages = data.messages;
+                        renderMessages();
+                        saveMessages();
                     }
                 }
                 // ★ 追加: 「待って（タイピング中）」の通知を受け取った時
@@ -547,17 +556,39 @@
         const rateSlider = document.getElementById('rateSlider');
         const pitchSlider = document.getElementById('pitchSlider');
         const chatLog = document.getElementById('chatLog');
-        let chatHistory = ''; 
+        
+        let chatMessages = []; // { name, text, type: 'tts'|'stt'|'remote' }
 
-        function updateChatLogDisplay() {
-            chatLog.innerHTML = escapeHTML(chatHistory);
+        const MSG_STYLES = {
+            tts:    { bg: '#e8f5e9', border: '#66bb6a', nameColor: '#2e7d32' }, // 緑：自分のTTS
+            stt:    { bg: '#e3f2fd', border: '#42a5f5', nameColor: '#1565c0' }, // 青：マイク音声
+            remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }  // 橙：相手
+        };
+
+        function addMessage(name, text, type) {
+            chatMessages.push({ name, text, type });
+            renderMessages();
+            saveMessages();
+        }
+
+        function renderMessages() {
+            chatLog.innerHTML = chatMessages.map((m, i) => {
+                const s = MSG_STYLES[m.type] || MSG_STYLES.stt;
+                return `<div class="msg-bubble" data-index="${i}" style="background:${s.bg};border-color:${s.border};">` +
+                    `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>` +
+                    `<span class="msg-text">${escapeHTML(m.text)}</span>` +
+                    `</div>`;
+            }).join('');
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        chatLog.addEventListener('input', () => {
-            chatHistory = chatLog.innerText;
-            localStorage.setItem('chatHistory', chatHistory);
-        });
+        function saveMessages() {
+            localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+        }
+
+        function messagesToText() {
+            return chatMessages.map(m => `${m.name}： ${m.text}`).join('\n');
+        }
 
         chatLog.addEventListener('mouseup', () => {
             const selectedText = window.getSelection().toString().trim();
@@ -570,9 +601,9 @@
 
         document.getElementById('clearChatBtn').onclick = () => {
             if(confirm("会話の履歴をすべて消去しますか？")) {
-                chatHistory = '';
-                updateChatLogDisplay();
-                localStorage.removeItem('chatHistory');
+                chatMessages = '';
+                renderMessages();
+                localStorage.removeItem('chatMessages');
             }
         };
 
@@ -610,11 +641,7 @@
         function speakAndLog() {
             const text = ttsInput.value.trim();
             if (!text) return;
-
-            // ★ 追加: 送信したら「待って」状態を自動で解除する
-            if (isMyTyping) {
-                waitBtn.click();
-            }
+            if (isMyTyping) waitBtn.click();
 
             const uttr = new SpeechSynthesisUtterance(text);
             uttr.lang = 'ja-JP';
@@ -622,68 +649,53 @@
             if (selectedVoice) uttr.voice = selectedVoice;
             uttr.rate = parseFloat(rateSlider.value);
             uttr.pitch = parseFloat(pitchSlider.value);
-            
-            const displayName = getMyName() === '名無し' ? 'あなた' : getMyName();
-            chatHistory += displayName + "： " + text + "\n\n";
-            updateChatLogDisplay();
-            localStorage.setItem('chatHistory', chatHistory);
-            ttsInput.value = '';
 
-            // ★ 追加: 入力したテキストを通信相手に送信
+            const displayName = getMyName() === '名無し' ? 'あなた' : getMyName();
+            addMessage(displayName, text, 'tts');
+            ttsInput.value = '';
             broadcastData(text);
 
-            const globalTextStart = chatHistory.length - 2 - text.length;
-            const globalTextEnd = chatHistory.length - 2;
+            const msgIndex = chatMessages.length - 1;
+
+            function getBubbleText() {
+                return chatLog.querySelector(`.msg-bubble[data-index="${msgIndex}"] .msg-text`);
+            }
 
             uttr.onstart = () => {
                 speakingQueueCount++;
-                chatLog.setAttribute('contenteditable', 'false'); 
-                
-                const before = chatHistory.slice(0, globalTextStart);
-                const hlText = chatHistory.slice(globalTextStart, globalTextEnd);
-                const after = chatHistory.slice(globalTextEnd);
-
-                chatLog.innerHTML = escapeHTML(before) + 
-                                    `<span class="tts-highlight-base">${escapeHTML(hlText)}</span>` + 
-                                    escapeHTML(after);
-                chatLog.scrollTop = chatLog.scrollHeight;
+                const el = getBubbleText();
+                if (el) el.innerHTML = `<span class="tts-highlight-base">${escapeHTML(text)}</span>`;
             };
 
             uttr.onboundary = (e) => {
                 if (e.name !== 'word' && e.name !== 'sentence') return;
-                const hlStart = globalTextStart + e.charIndex;
+                const el = getBubbleText();
+                if (!el) return;
+
+                const hlStart = e.charIndex;
                 let hlLen = e.charLength;
-
-                if (!hlLen || hlLen === 0) {
-                    const remainingText = chatHistory.slice(hlStart, globalTextEnd);
-                    const nextPunct = remainingText.search(/[、。，．！？\s]/);
-                    hlLen = nextPunct !== -1 ? nextPunct + 1 : remainingText.length;
+                if (!hlLen) {
+                    const remaining = text.slice(hlStart);
+                    const next = remaining.search(/[、。，．！？\s]/);
+                    hlLen = next !== -1 ? next + 1 : remaining.length;
                 }
+                const hlEnd = Math.min(hlStart + hlLen, text.length);
 
-                const hlEnd = Math.min(hlStart + hlLen, globalTextEnd);
-                const beforeSentence = chatHistory.slice(0, globalTextStart);
-                const sentenceBeforeWord = chatHistory.slice(globalTextStart, hlStart);
-                const hlText = chatHistory.slice(hlStart, hlEnd);
-                const sentenceAfterWord = chatHistory.slice(hlEnd, globalTextEnd);
-                const afterSentence = chatHistory.slice(globalTextEnd);
-
-                chatLog.innerHTML = escapeHTML(beforeSentence) + 
-                                    `<span class="tts-highlight-base">` +
-                                    escapeHTML(sentenceBeforeWord) +
-                                    `<span class="tts-highlight-word">${escapeHTML(hlText)}</span>` +
-                                    escapeHTML(sentenceAfterWord) +
-                                    `</span>` + 
-                                    escapeHTML(afterSentence);
+                el.innerHTML = `<span class="tts-highlight-base">` +
+                    escapeHTML(text.slice(0, hlStart)) +
+                    `<span class="tts-highlight-word">${escapeHTML(text.slice(hlStart, hlEnd))}</span>` +
+                    escapeHTML(text.slice(hlEnd)) +
+                    `</span>`;
             };
 
             uttr.onend = uttr.onerror = () => {
                 speakingQueueCount--;
                 if (speakingQueueCount <= 0) {
                     speakingQueueCount = 0;
-                    chatLog.setAttribute('contenteditable', 'true');
-                    updateChatLogDisplay();
+                    renderMessages(); // ハイライト解除
                 }
             };
+
             synth.speak(uttr);
         }
 
@@ -957,9 +969,7 @@
                     const cleanedFinal = newFinal.replace(/[．。、，\s]+/g, '').trim();
                     if (newFinal && cleanedFinal.length > 0) {
                         const sttName = getMyName() === '名無し' ? 'マイク音声' : getMyName() + '(音声)';
-                        chatHistory += sttName + "： " + newFinal;
-                        if (speakingQueueCount === 0) updateChatLogDisplay();
-                        localStorage.setItem('chatHistory', chatHistory);
+                        if (speakingQueueCount === 0) addMessage(sttName, newFinal.trim(), 'stt');
                         broadcastData(newFinal);
                     }
 
@@ -1046,48 +1056,40 @@
             };
         }
 
-        // --- ★ 追加: 会話ログのエクスポート機能 ---
+        // --- 会話ログのエクスポート機能 ---
         
-        // ① クリップボードに一括コピーする機能
+        // コピー
         document.getElementById('copyChatBtn').onclick = () => {
-            if (!chatHistory.trim()) {
+            if (!chatMessages.length()) {
                 alert("コピーする会話履歴がありません．");
                 return;
             }
-            navigator.clipboard.writeText(chatHistory).then(() => {
+            navigator.clipboard.writeText(messagesToText()).then(() => {
                 alert("会話ノートをクリップボードにコピーしました！");
-            }).catch(err => {
-                alert("コピーに失敗しました．お使いのブラウザの権限を確認してください．");
+            }).catch(() => {
+                alert("コピーに失敗しました．");
             });
         };
 
-        // ② テキストファイル(.txt)としてダウンロードする機能
+        // テキストファイル(.txt)としてダウンロードする機能
         document.getElementById('downloadChatBtn').onclick = () => {
-            if (!chatHistory.trim()) {
+            if (!chatMessages.length()) {
                 alert("保存する会話履歴がありません．");
                 return;
             }
             // 保存用のテキストデータを作成
-            const blob = new Blob([chatHistory], { type: 'text/plain;charset=utf-8' });
+            const blob = new Blob([messagesToText], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             
-            // ファイル名を現在の日時（例：会話記録_20260501_1910.txt）にする
+            // ファイル名
             const date = new Date();
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            const hh = String(date.getHours()).padStart(2, '0');
-            const min = String(date.getMinutes()).padStart(2, '0');
-            const filename = `会話記録_${yyyy}${mm}${dd}_${hh}${min}.txt`;
+            const filename = `会話記録_${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}_${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}.txt`;
             
             // 目に見えないリンクを作って自動でクリックさせる（ダウンロードの裏技）
             const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
         };
     </script>
 </body>
