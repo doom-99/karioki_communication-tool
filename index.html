@@ -1,4 +1,4 @@
-<!--  -->
+<!-- LINEのような左右でのチャット形式に -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -464,7 +464,17 @@
                 else if (data.type === 'history') {
                     // 相手の履歴の方が多い場合だけ上書き
                     if (data.messages && data.messages.length > chatMessages.length) {
-                        chatMessages = data.messages;
+                        // ★ 変更: 受け取った履歴のうち，自分以外の発言をすべて左側（remote）に書き換える
+                        const myCurrentName = getMyName() === '名無し' ? 'あなた' : getMyName();
+                        
+                        chatMessages = data.messages.map(m => {
+                            // 発言者が今の自分の名前と違う場合，強制的に 'remote' 属性（左側・オレンジ色）にする
+                            if (m.name !== myCurrentName) {
+                                return { name: m.name, text: m.text, type: 'remote' };
+                            }
+                            return m; // 自分の発言だった場合はそのまま（右側に表示）
+                        });
+                        
                         renderMessages();
                         saveMessages();
                     }
