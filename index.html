@@ -1,3 +1,5 @@
+<!-- PCでは通信設定パネルが画面左側に -->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,8 +11,8 @@
         body { font-family: sans-serif; background-color: #f4f7f6; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; margin: 0; padding: 10px; font-size: var(--font-size); color: #333; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; overflow: hidden; }
         
         .header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
-        .sync-panel { background: #e3f2fd; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #bbdefb; flex-shrink: 0; }
-        .sync-summary { font-weight: bold; cursor: pointer; outline: none; padding: 5px 0; color: #0d47a1; }
+        /* ★ 変更: 通信パネルのデザイン（PCでは左側に幅を固定して表示） */
+        .sync-panel { background: #e3f2fd; padding: 10px 15px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 350px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }        .sync-summary { font-weight: bold; cursor: pointer; outline: none; padding: 5px 0; color: #0d47a1; }
         .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
         h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
         
@@ -99,6 +101,29 @@
         #selectionPopup { display: none; position: absolute; background-color: #212529; color: white; padding: 6px 12px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; font-size: 0.85em; font-weight: bold; z-index: 1000; }
         #selectionPopup:hover { background-color: #424649; }
         #selectionPopup::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 6px; border-style: solid; border-color: #212529 transparent transparent transparent; }
+
+        /* ★ 追加: 画面分割レイアウト（PCとスマホの切り替え） */
+        .main-wrapper {
+            display: flex;
+            flex-direction: row; /* PCでは横並び（左:通信, 右:ノート） */
+            flex-grow: 1;
+            gap: 15px;
+            min-height: 0;
+            width: 100%;
+        }
+
+        /* 画面幅が768px以下のスマホ・タブレット向けの設定 */
+        @media (max-width: 768px) {
+            .main-wrapper {
+                flex-direction: column; /* スマホでは縦並びに戻す */
+                gap: 10px;
+            }
+            .sync-panel {
+                width: 100%; /* スマホでは横幅いっぱいにする */
+                height: auto;
+            }
+        }
+
     </style>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -113,58 +138,64 @@
         </div>
     </div>
 
-    <details class="sync-panel">
-        <summary class="sync-summary">
-            📡 通信・招待機能を開く <span id="syncStatusSummary" style="font-size: 0.85em; font-weight: normal; margin-left: 10px; color: #555;">(オフライン)</span>
-        </summary>
-        <div style="margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 10px;">
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-                <div>あなたのID: <span id="myPeerId" class="sync-id">取得中...</span></div>
-                <div>
-                    <button id="copyUrlBtn" class="invite-btn" style="display:none;">🔗 招待URLコピー</button>
-                    <button id="showQrBtn" class="invite-btn" style="display:none;">📱 QR表示</button>
+    <!-- ★ 追加: ここから分割レイアウト用の箱（ラッパー）で囲む -->
+    <div class="main-wrapper">
+
+        <details class="sync-panel">
+            <summary class="sync-summary">
+                📡 通信・招待機能を開く <span id="syncStatusSummary" style="font-size: 0.85em; font-weight: normal; margin-left: 10px; color: #555;">(オフライン)</span>
+            </summary>
+            <div style="margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 10px;">
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
+                    <div>あなたのID: <span id="myPeerId" class="sync-id">取得中...</span></div>
+                    <div>
+                        <button id="copyUrlBtn" class="invite-btn" style="display:none;">🔗 招待URLコピー</button>
+                        <button id="showQrBtn" class="invite-btn" style="display:none;">📱 QR表示</button>
+                    </div>
+                </div>
+                <div style="width: 100%; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="myNameInput" placeholder="あなたの名前 (例: Aさん)" style="width: 150px; padding: 6px;">
+                    <input type="text" id="targetPeerId" placeholder="相手のIDを入力" style="width: 150px; padding: 6px;">
+                    <button id="connectBtn" style="padding: 6px 12px; font-size: 0.9em;">接続</button>
+                </div>
+                <div id="syncStatus" style="width: 100%; font-size: 0.85em; color: #555; margin-top: 10px;">現在オフラインです（1人で使用中）</div>
+                <div id="qrContainer"><div id="qrcode"></div></div>
+            </div>
+        </details>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>💬 会話ノート</h2>
+                <div style="display: flex; gap: 8px;">
+                    <button id="copyChatBtn" class="action-btn">📋 コピー</button>
+                    <button id="downloadChatBtn" class="action-btn">💾 保存</button>
+                    <button id="clearChatBtn" class="clear-btn">🗑️ リセット</button>
                 </div>
             </div>
-            <div style="width: 100%; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
-                <input type="text" id="myNameInput" placeholder="あなたの名前 (例: Aさん)" style="width: 150px; padding: 6px;">
-                <input type="text" id="targetPeerId" placeholder="相手のIDを入力" style="width: 150px; padding: 6px;">
-                <button id="connectBtn" style="padding: 6px 12px; font-size: 0.9em;">接続</button>
+
+            <div id="envSoundCaption" class="caption-bar"></div>
+            <div id="typingIndicator" class="typing-indicator"></div>
+            <div id="selectionPopup">📖 辞書に登録</div>
+            
+            <div id="chatLog" class="chat-textarea" contenteditable="false" data-placeholder="ここに会話の履歴が表示されます..."></div>
+            <div id="sttInterim"></div>
+
+            <div class="meter-container">
+                <span class="meter-label">🎤 マイク入力:</span>
+                <div class="meter-bar-bg"><div id="volumeMeter" class="meter-bar-fill"></div></div>
             </div>
-            <div id="syncStatus" style="width: 100%; font-size: 0.85em; color: #555; margin-top: 10px;">現在オフラインです（1人で使用中）</div>
-            <div id="qrContainer"><div id="qrcode"></div></div>
-        </div>
-    </details>
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <h2>💬 会話ノート</h2>
-            <div style="display: flex; gap: 8px;">
-                <button id="copyChatBtn" class="action-btn">📋 コピー</button>
-                <button id="downloadChatBtn" class="action-btn">💾 保存</button>
-                <button id="clearChatBtn" class="clear-btn">🗑️ リセット</button>
+            <div class="input-row">
+                <button id="startBtn">🎤 聞き取り開始</button>
+                <button id="stopBtn" class="stop-btn" style="display:none;">⏹️ 停止</button>
+                <button id="waitBtn" class="wait-btn">🖐️ 待って</button>
+                <textarea id="ttsInput" rows="1" placeholder="返答を入力 (Enterで送信 / Shift+Enterで改行)"></textarea>
+                <button id="speakBtn">🗣️ 送信</button>
             </div>
         </div>
 
-        <div id="envSoundCaption" class="caption-bar"></div>
-        <div id="typingIndicator" class="typing-indicator"></div>
-        <div id="selectionPopup">📖 辞書に登録</div>
-        
-        <div id="chatLog" class="chat-textarea" contenteditable="false" data-placeholder="ここに会話の履歴が表示されます..."></div>
-        <div id="sttInterim"></div>
-
-        <div class="meter-container">
-            <span class="meter-label">🎤 マイク入力:</span>
-            <div class="meter-bar-bg"><div id="volumeMeter" class="meter-bar-fill"></div></div>
-        </div>
-
-        <div class="input-row">
-            <button id="startBtn">🎤 聞き取り開始</button>
-            <button id="stopBtn" class="stop-btn" style="display:none;">⏹️ 停止</button>
-            <button id="waitBtn" class="wait-btn">🖐️ 待って</button>
-            <textarea id="ttsInput" rows="1" placeholder="返答を入力 (Enterで送信 / Shift+Enterで改行)"></textarea>
-            <button id="speakBtn">🗣️ 送信</button>
-        </div>
     </div>
+    <!-- ★ 追加: ここで箱（ラッパー）を閉じる -->
 
     <script>
         const isAndroid = /Android/i.test(navigator.userAgent);
