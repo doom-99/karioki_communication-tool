@@ -1025,7 +1025,7 @@
 
             startBtn.onclick = () => {
                 isUserListening = true;
-                initVolumeMeter();
+                if (!isAndroid) initVolumeMeter(); // ★ Androidでは音量メーターを起動しない
                 recognition = buildRecognition(); // 開始時も新規生成
                 try { recognition.start(); } catch(e) { scheduleRestart(); }
                 startBtn.style.display = 'none';
