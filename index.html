@@ -242,7 +242,7 @@
         <!-- ★ 追加: 相手に表示されるタイピング通知バー -->
         <div id="typingIndicator" class="typing-indicator"></div>
         
-        <div id="chatLog" class="chat-textarea" contenteditable="false" data-placeholder="ここに会話の履歴が表示されます... (クリックして編集可能)"></div>
+        <div id="chatLog" class="chat-textarea" contenteditable="false" data-placeholder="ここに会話の履歴が表示されます..."></div>
         <div id="sttInterim"></div>
 
         <!-- ★ 新規：音量メーターのUI -->
@@ -969,8 +969,8 @@
 
                     const cleanedFinal = newFinal.replace(/[．。、，\s]+/g, '').trim();
                     if (newFinal && cleanedFinal.length > 0) {
-                        const sttName = getMyName() === '名無し' ? 'マイク音声' : getMyName() + '(音声)';
-                        if (speakingQueueCount === 0) addMessage(sttName, newFinal.trim(), 'stt');
+                        const sttName = getMyName() === '名無し' ? 'あなた' : getMyName();
+                        if (speakingQueueCount === 0) addMessage(sttName, newFinal.trim(), 'tts');
                         broadcastData(newFinal);
                     }
 
