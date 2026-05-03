@@ -313,6 +313,24 @@
         // --- ★ 変更: URLの解析と自動接続、QRコード生成 ---
         window.addEventListener('DOMContentLoaded', () => {
 
+            renderDictionary();
+            if(localStorage.getItem('appFontSize')) {
+                currentFontSize = parseInt(localStorage.getItem('appFontSize'));
+                document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+            }
+            if(localStorage.getItem('chatHistory')) {
+                chatHistory = localStorage.getItem('chatHistory');
+                updateChatLogDisplay();
+            }
+            if(localStorage.getItem('ttsRate')) {
+                rateSlider.value = localStorage.getItem('ttsRate');
+                document.getElementById('rateValue').textContent = rateSlider.value;
+            }
+            if(localStorage.getItem('ttsPitch')) {
+                pitchSlider.value = localStorage.getItem('ttsPitch');
+                document.getElementById('pitchValue').textContent = pitchSlider.value;
+            }
+        
             // ★ Androidではメーターを最初から非表示
             if (isAndroid) {
                 document.querySelector('.meter-container').style.display = 'none';
@@ -536,26 +554,6 @@
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        window.onload = () => {
-            renderDictionary();
-            if(localStorage.getItem('appFontSize')) {
-                currentFontSize = parseInt(localStorage.getItem('appFontSize'));
-                document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
-            }
-            if(localStorage.getItem('chatHistory')) {
-                chatHistory = localStorage.getItem('chatHistory');
-                updateChatLogDisplay();
-            }
-            if(localStorage.getItem('ttsRate')) {
-                rateSlider.value = localStorage.getItem('ttsRate');
-                document.getElementById('rateValue').textContent = rateSlider.value;
-            }
-            if(localStorage.getItem('ttsPitch')) {
-                pitchSlider.value = localStorage.getItem('ttsPitch');
-                document.getElementById('pitchValue').textContent = pitchSlider.value;
-            }
-        };
-
         chatLog.addEventListener('input', () => {
             chatHistory = chatLog.innerText;
             localStorage.setItem('chatHistory', chatHistory);
@@ -632,9 +630,7 @@
             ttsInput.value = '';
 
             // ★ 追加: 入力したテキストを通信相手に送信
-            if (typeof broadcastData === 'function') {
-                broadcastData(text);
-            }
+            broadcastData(text);
 
             const globalTextStart = chatHistory.length - 2 - text.length;
             const globalTextEnd = chatHistory.length - 2;
@@ -964,7 +960,7 @@
                         chatHistory += sttName + "： " + newFinal;
                         if (speakingQueueCount === 0) updateChatLogDisplay();
                         localStorage.setItem('chatHistory', chatHistory);
-                        if (typeof broadcastData === 'function') broadcastData(newFinal);
+                        broadcastData(newFinal);
                     }
 
                     sttInterim.textContent = interimTranscript ? "👂 聞き取り中...： " + interimTranscript : "";
@@ -1026,11 +1022,6 @@
                     scheduleRestart(800);
                 }
             });
-
-            // ★ Androidでは音量メーターのUIごと非表示にする
-            if (isAndroid) {
-                document.querySelector('.meter-container').style.display = 'none';
-            }
 
             startBtn.onclick = () => {
                 isUserListening = true;
