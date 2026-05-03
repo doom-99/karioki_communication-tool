@@ -4,6 +4,9 @@
 
 <!-- 一人目が会議の「サーバー」のような役割を果たし完全な同期 -->
 
+<!-- なぞった時に小さく『辞書に登録』というボタン
+ （ポップアップ）が浮かび上がり，それを押した時だけ開く -->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -160,6 +163,26 @@
 
         .msg-text { white-space: pre-wrap; word-wrap: break-word; display: block; color: #333; }
 
+        /* ★ 追加: テキスト選択時のポップアップデザイン */
+        #selectionPopup {
+            display: none;
+            position: absolute;
+            background-color: #212529;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        #selectionPopup:hover { background-color: #424649; }
+        #selectionPopup::after { /* 吹き出しのしっぽ */
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            border-width: 6px; border-style: solid; border-color: #212529 transparent transparent transparent;
+        }
+
     </style>
     <!-- ★ 追加: WebRTC用のPeerJSライブラリ -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -250,6 +273,9 @@
             </div>
         </div>
     </details>
+
+    <!-- ★ 追加: 辞書登録用のポップアップ -->
+    <div id="selectionPopup">📖 辞書に登録</div>
 
     <div class="chat-container">
         <!-- ★ 変更: 会話ノートのヘッダーにエクスポートボタンを追加 -->
@@ -664,14 +690,48 @@
             return chatMessages.map(m => `${m.name}： ${m.text}`).join('\n');
         }
 
-        chatLog.addEventListener('mouseup', () => {
+        // --- ★ 変更: 選択時にポップアップを出し，押した時だけ辞書タブを開く ---
+        const selectionPopup = document.getElementById('selectionPopup');
+        let tempSelectedText = "";
+
+        // 文字をなぞり終わった時の処理
+        chatLog.addEventListener('mouseup', (e) => {
             const selectedText = window.getSelection().toString().trim();
             if (selectedText) {
-                masterPanel.open = true;
-                dictWrong.value = selectedText;
-                dictCorrect.focus();
+                tempSelectedText = selectedText;
+                // マウスポインタの少し上にポップアップを表示
+                selectionPopup.style.left = (e.pageX - 50) + 'px'; // 中央に寄せる調整
+                selectionPopup.style.top = (e.pageY - 45) + 'px';
+                selectionPopup.style.display = 'block';
+            } else {
+                selectionPopup.style.display = 'none';
             }
         });
+
+        // 画面のどこかをクリックしたときにポップアップを消す処理
+        document.addEventListener('mousedown', (e) => {
+            if (e.target !== selectionPopup) {
+                // クリックによって選択が解除されたら非表示にする
+                setTimeout(() => {
+                    if (!window.getSelection().toString().trim()) {
+                        selectionPopup.style.display = 'none';
+                    }
+                }, 10);
+            }
+        });
+        
+        // ポップアップの「辞書に登録」ボタンを押したときの処理
+        selectionPopup.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // ボタンを押した瞬間にテキスト選択が解除されるのを防ぐ
+            if (tempSelectedText) {
+                masterPanel.open = true;
+                dictWrong.value = tempSelectedText;
+                dictCorrect.focus();
+                selectionPopup.style.display = 'none';
+                window.getSelection().removeAllRanges(); // ハイライト状態を解除してスッキリさせる
+            }
+        });
+        // ----------------------------------------------------
 
         document.getElementById('clearChatBtn').onclick = () => {
             if(confirm("会話の履歴をすべて消去しますか？")) {
