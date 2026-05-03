@@ -1,5 +1,7 @@
 <!-- LINEのような左右でのチャット形式に -->
 
+<!-- 背景色は6色まで -->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -474,7 +476,7 @@
                             }
                             return m; // 自分の発言だった場合はそのまま（右側に表示）
                         });
-                        
+
                         renderMessages();
                         saveMessages();
                     }
@@ -593,6 +595,25 @@
             remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }  // 橙：相手
         };
 
+        // ★ 追加: 相手の吹き出し用に複数の色（パレット）を用意する
+        const REMOTE_PALETTES = [
+            { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }, // 橙
+            { bg: '#fce4ec', border: '#f06292', nameColor: '#c2185b' }, // ピンク
+            { bg: '#e3f2fd', border: '#64b5f6', nameColor: '#1565c0' }, // 青
+            { bg: '#f3e5f5', border: '#ba68c8', nameColor: '#7b1fa2' }, // 紫
+            { bg: '#e0f7fa', border: '#4dd0e1', nameColor: '#006064' }, // シアン
+            { bg: '#fffde7', border: '#dce775', nameColor: '#827717' }  // 黄緑
+        ];
+
+        // ★ 追加: 「名前」の文字列から計算して，常に同じパレット色を返す関数
+        function getColorForName(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return REMOTE_PALETTES[Math.abs(hash) % REMOTE_PALETTES.length];
+        }
+
         function addMessage(name, text, type) {
             chatMessages.push({ name, text, type });
             renderMessages();
@@ -601,9 +622,15 @@
 
         function renderMessages() {
             chatLog.innerHTML = chatMessages.map((m, i) => {
-                const s = MSG_STYLES[m.type] || MSG_STYLES.stt;
+                // ★ 変更: 相手(remote)の場合は名前から色を決定し，自分の場合は緑(tts)を使う
+                let s = MSG_STYLES[m.type] || MSG_STYLES.stt;
+                if (m.type === 'remote') {
+                    s = getColorForName(m.name);
+                }
+
                 // ★ 追加: 相手(remote)は左、自分(tts/stt)は右に配置する判定
                 const alignClass = m.type === 'remote' ? 'left' : 'right';
+
                 // ★ 変更: 左右配置用のHTML構造（msg-row と msg-wrapper）で囲む
                 return `<div class="msg-row ${alignClass}">` +
                        `<div class="msg-wrapper">` +
