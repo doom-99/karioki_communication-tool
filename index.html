@@ -1,4 +1,6 @@
-<!--  -->
+<!-- Androidのピコン音をさらに軽減する
+ 接続状態インジケーターをボタン色で表示
+ 「聞き取り中」表示をAndroidでも確認しやすくする -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -796,41 +798,37 @@
                 if (document.visibilityState === 'visible' && isUserListening && !isApiActive) scheduleRestart(800);
             });
 
-            // --- ★ 変更: マイク開始ボタンの処理 ---
+            // --- ★ 変更: マイクの開始と停止を1つのボタンで賢く切り替える（トグル処理） ---
             startBtn.onclick = () => {
-                isUserListening = true;
-                
-                // Android用: 無音を流してマイクが「無音だ」と勘違いしてピコンと鳴るのを防ぐ
-                startSilentAudio(); 
-                
-                if (!isAndroid) initVolumeMeter(); 
-                recognition = buildRecognition(); 
-                try { recognition.start(); } catch(e) { scheduleRestart(); }
-                
-                // ★ 変更: ボタンを消すのではなく、見た目を変えて「聞き取り中」をアピールする
-                startBtn.textContent = '👂 聞き取り中... (停止)';
-                startBtn.classList.add('listening-active');
+                if (!isUserListening) {
+                    // 【開始の処理】
+                    isUserListening = true;
+                    
+                    // Android用: 無音を流してマイクが「無音だ」と勘違いしてピコンと鳴るのを防ぐ
+                    startSilentAudio(); 
+                    
+                    if (!isAndroid) initVolumeMeter(); 
+                    recognition = buildRecognition(); 
+                    try { recognition.start(); } catch(e) { scheduleRestart(); }
+                    
+                    startBtn.textContent = '👂 聞き取り中... (停止)';
+                    startBtn.classList.add('listening-active');
+                } else {
+                    // 【停止の処理】
+                    isUserListening = false; 
+                    clearTimeout(restartTimer); 
+                    restartTimer = null;
+                    
+                    stopSilentAudio(); // Androidの無音再生も止める
+
+                    if (recognition) { try { recognition.stop(); } catch(err) {} recognition = null; }
+                    sttInterim.textContent = ""; 
+                    
+                    startBtn.textContent = '🎤 聞き取り開始';
+                    startBtn.classList.remove('listening-active');
+                }
             };
-
-            // --- ★ 変更: マイク停止（聞き取り中ボタンを押した時）の処理 ---
-            // ※「停止ボタン(stopBtn)」は廃止し、同じボタンでオンオフできるようにしました
-            startBtn.addEventListener('click', function(e) {
-                // 初回のクリック（開始）の時は何もしないための判定
-                if (!isUserListening || e.isTrusted === false || this.textContent === '🎤 聞き取り開始') return;
-                
-                isUserListening = false; 
-                clearTimeout(restartTimer); 
-                restartTimer = null;
-                
-                stopSilentAudio(); // Androidの無音再生も止める
-
-                if (recognition) { try { recognition.stop(); } catch(err) {} recognition = null; }
-                sttInterim.textContent = ""; 
-                
-                // ボタンの見た目を元に戻す
-                startBtn.textContent = '🎤 聞き取り開始';
-                startBtn.classList.remove('listening-active');
-            });
+            // ------------------------------------------------------------------------
         }
 
         // --- エクスポート ---
