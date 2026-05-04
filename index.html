@@ -629,7 +629,7 @@
             speakNextChunk();
         }
         // ------------------------------------------------------------------------
-        
+
         speakBtn.onclick = speakAndLog;
         ttsInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; });
         ttsInput.addEventListener('keydown', (e) => {
@@ -773,10 +773,13 @@
             function buildRecognition() {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const rec = new SpeechRecognition();
-                rec.lang = 'ja-JP'; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
+                rec.lang = 'ja-JP'; 
+                rec.continuous = !isAndroid; // ★ 変更: Android特有の繰り返し増殖バグを防ぐため、Androidのみ false にする
+                rec.interimResults = true; 
+                rec.maxAlternatives = 1;
 
                 rec.onstart = () => { isApiActive = true; clearTimeout(restartTimer); restartTimer = null; };
-
+                
                 rec.onresult = (event) => {
                     let interimTranscript = ''; let newFinal = '';
                     for (let i = event.resultIndex; i < event.results.length; ++i) {
