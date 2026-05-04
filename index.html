@@ -1,4 +1,4 @@
-<!--  -->
+<!-- フレーズハイライト -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -554,14 +554,23 @@
             const msgIndex = chatMessages.length - 1;
             function getBubbleText() { return chatLog.querySelector(`.msg-bubble[data-index="${msgIndex}"] .msg-text`); }
 
-            // ★ テキストを句読点や改行で分割する（例: "こんにちは。世界" -> ["こんにちは。", "世界"]）
-            const chunks = rawText.match(/.*?[、。，．！？\n]+|.+/g) || [rawText];
+            // ★ 変更1: 句読点だけでなく、長すぎる文は強制的に細かく分割して確実にハイライトを動かす
+            let chunks = [];
+            const tempChunks = rawText.match(/.*?[、。，．！？\n\s]+|.+/g) || [rawText];
+            tempChunks.forEach(c => {
+                // 1フレーズが15文字を超える場合はさらに分割
+                if (c.length > 15) {
+                    for (let i = 0; i < c.length; i += 15) chunks.push(c.slice(i, i + 15));
+                } else {
+                    chunks.push(c);
+                }
+            });
             
             let currentIndex = 0;
             let charOffset = 0; // 読み上げ済みの文字数
+            let fallbackTimer = null; // スマホ特有の「止まるバグ」対策タイマー
 
             function speakNextChunk() {
-                // すべてのチャンク（文節）を読み終えたら終了
                 if (currentIndex >= chunks.length) {
                     speakingQueueCount--;
                     if (speakingQueueCount <= 0) { speakingQueueCount = 0; renderMessages(); } // ハイライト解除
@@ -582,7 +591,16 @@
                 uttr.rate = savedTtsRate;
                 uttr.pitch = savedTtsPitch;
 
-                // そのフレーズの読み上げが始まった瞬間にハイライトを動かす
+                // 次のフレーズへ進む処理（重複実行を防ぐ）
+                function proceedNext() {
+                    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+                    uttr.onend = null; uttr.onerror = null; 
+                    charOffset += chunk.length;
+                    currentIndex++;
+                    speakNextChunk();
+                }
+
+                // 読み上げ開始時の処理
                 uttr.onstart = () => {
                     if (currentIndex === 0) speakingQueueCount++;
                     const el = getBubbleText();
@@ -591,37 +609,27 @@
                     const hlStart = charOffset;
                     const hlEnd = charOffset + chunk.length;
 
-                    // 読んでいるチャンク（文節）の部分だけを黄色の太字にする
-                    el.innerHTML = `<span class="tts-highlight-base">` + 
-                        escapeHTML(rawText.slice(0, hlStart)) + 
+                    // ★ 変更2: 全体を薄黄色にするのをやめ、読んでいる箇所「だけ」をハイライトする
+                    el.innerHTML = escapeHTML(rawText.slice(0, hlStart)) + 
                         `<span class="tts-highlight-word">${escapeHTML(rawText.slice(hlStart, hlEnd))}</span>` + 
-                        escapeHTML(rawText.slice(hlEnd)) + 
-                        `</span>`;
+                        escapeHTML(rawText.slice(hlEnd));
+
+                    // ★ 変更3: スマホで音声が止まったままになるバグを防ぐため、文字数に応じた時間で強制的に次へ進める
+                    const estimatedTime = (chunk.length * 300 / savedTtsRate) + 600;
+                    fallbackTimer = setTimeout(proceedNext, estimatedTime);
                 };
 
-                // そのフレーズを読み終えたら、次のフレーズへバトンタッチ
-                uttr.onend = () => {
-                    charOffset += chunk.length;
-                    currentIndex++;
-                    speakNextChunk(); 
-                };
+                uttr.onend = proceedNext;
+                uttr.onerror = proceedNext;
 
-                // エラーで止まってしまった場合も次へ進める安全対策
-                uttr.onerror = () => {
-                    charOffset += chunk.length;
-                    currentIndex++;
-                    speakNextChunk();
-                };
-
-                // 音声合成を実行
-                synth.speak(uttr);
+                // 連続再生によるバグを防ぐため、少しだけ待ってから再生
+                setTimeout(() => { synth.speak(uttr); }, 10);
             }
 
-            // 最初のフレーズの読み上げをスタート
             speakNextChunk();
         }
         // ------------------------------------------------------------------------
-
+        
         speakBtn.onclick = speakAndLog;
         ttsInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; });
         ttsInput.addEventListener('keydown', (e) => {
