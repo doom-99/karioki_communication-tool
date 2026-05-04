@@ -558,9 +558,17 @@
             let chunks = [];
             const tempChunks = rawText.match(/.*?[、。，．！？\n\s]+|.+/g) || [rawText];
             tempChunks.forEach(c => {
-                // 1フレーズが15文字を超える場合はさらに分割
-                if (c.length > 15) {
-                    for (let i = 0; i < c.length; i += 15) chunks.push(c.slice(i, i + 15));
+                // 分割の基準を15文字から25文字に緩める
+                if (c.length > 25) {
+                    for (let i = 0; i < c.length; i += 25) {
+                        let part = c.slice(i, i + 25);
+                        // もし分割された結果が「。」などの記号だけになってしまったら、1つ前の塊に吸収させる
+                        if (part.match(/^[、。，．！？\n\s]+$/) && chunks.length > 0) {
+                            chunks[chunks.length - 1] += part;
+                        } else {
+                            chunks.push(part);
+                        }
+                    }
                 } else {
                     chunks.push(c);
                 }
