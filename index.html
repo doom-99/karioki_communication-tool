@@ -1,5 +1,4 @@
-<!-- PCでは通信設定パネルが画面左側に
- （横幅が狭いと上に） -->
+<!--  -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -64,6 +63,18 @@
         button:hover { background-color: #0b5ed7; }
         .stop-btn { background-color: #dc3545; }
         .stop-btn:hover { background-color: #c82333; }
+        /* ★ 追加: 聞き取り中（マイクオン）状態のボタンデザイン */
+        .listening-active {
+            background-color: #e8f5e9 !important;
+            color: #2e7d32 !important;
+            border: 2px solid #4caf50 !important;
+            animation: pulse-light 1.5s infinite;
+        }
+        @keyframes pulse-light {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
         .clear-btn { background-color: #6c757d; padding: 6px 12px; font-size: 0.85em; }
         .clear-btn:hover { background-color: #5a6268; }
         .action-btn { background-color: #198754; padding: 6px 12px; font-size: 0.85em; }
@@ -217,8 +228,36 @@
     <!-- ★ 追加: ここで箱（ラッパー）を閉じる -->
 
     <script>
+        // ★ Androidかどうかを判定
         const isAndroid = /Android/i.test(navigator.userAgent);
+
+        // --- ★ 追加: Androidの「ピコン音(no-speech)」防止用の無音オシレーター ---
+        let silentAudioCtx = null;
+        function startSilentAudio() {
+            if (!isAndroid) return;
+            if (silentAudioCtx) return; // 既に動いていれば何もしない
+            
+            try {
+                silentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = silentAudioCtx.createOscillator();
+                const gain = silentAudioCtx.createGain();
+                gain.gain.value = 0.0001; // 人間には聞こえない極小の音量
+                oscillator.connect(gain);
+                gain.connect(silentAudioCtx.destination);
+                oscillator.start();
+            } catch(e) {
+                console.log("無音オーディオの開始に失敗:", e);
+            }
+        }
         
+        function stopSilentAudio() {
+            if (silentAudioCtx) {
+                silentAudioCtx.close();
+                silentAudioCtx = null;
+            }
+        }
+        // ------------------------------------------------------------------------
+                
         // ★ 追加: 定期的に設定データ（フォントや辞書）を読み込み直す処理
         // 別タブで設定が変更された時に、リアルタイムで反映させるための仕掛けです。
         let customDictionary = JSON.parse(localStorage.getItem('userDictionary')) || {};
@@ -757,19 +796,41 @@
                 if (document.visibilityState === 'visible' && isUserListening && !isApiActive) scheduleRestart(800);
             });
 
+            // --- ★ 変更: マイク開始ボタンの処理 ---
             startBtn.onclick = () => {
                 isUserListening = true;
+                
+                // Android用: 無音を流してマイクが「無音だ」と勘違いしてピコンと鳴るのを防ぐ
+                startSilentAudio(); 
+                
                 if (!isAndroid) initVolumeMeter(); 
                 recognition = buildRecognition(); 
                 try { recognition.start(); } catch(e) { scheduleRestart(); }
-                startBtn.style.display = 'none'; stopBtn.style.display = 'inline-block';
+                
+                // ★ 変更: ボタンを消すのではなく、見た目を変えて「聞き取り中」をアピールする
+                startBtn.textContent = '👂 聞き取り中... (停止)';
+                startBtn.classList.add('listening-active');
             };
 
-            stopBtn.onclick = () => {
-                isUserListening = false; clearTimeout(restartTimer); restartTimer = null;
-                if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
-                sttInterim.textContent = ""; startBtn.style.display = 'inline-block'; stopBtn.style.display = 'none';
-            };
+            // --- ★ 変更: マイク停止（聞き取り中ボタンを押した時）の処理 ---
+            // ※「停止ボタン(stopBtn)」は廃止し、同じボタンでオンオフできるようにしました
+            startBtn.addEventListener('click', function(e) {
+                // 初回のクリック（開始）の時は何もしないための判定
+                if (!isUserListening || e.isTrusted === false || this.textContent === '🎤 聞き取り開始') return;
+                
+                isUserListening = false; 
+                clearTimeout(restartTimer); 
+                restartTimer = null;
+                
+                stopSilentAudio(); // Androidの無音再生も止める
+
+                if (recognition) { try { recognition.stop(); } catch(err) {} recognition = null; }
+                sttInterim.textContent = ""; 
+                
+                // ボタンの見た目を元に戻す
+                startBtn.textContent = '🎤 聞き取り開始';
+                startBtn.classList.remove('listening-active');
+            });
         }
 
         // --- エクスポート ---
