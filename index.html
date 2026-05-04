@@ -1,6 +1,4 @@
-<!-- Androidのピコン音をさらに軽減する
- 接続状態インジケーターをボタン色で表示
- 「聞き取り中」表示をAndroidでも確認しやすくする -->
+<!--  -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -541,60 +539,88 @@
         const speakBtn = document.getElementById('speakBtn');
         const ttsInput = document.getElementById('ttsInput');
 
+        // --- ★ 変更: onboundaryに依存せず、句読点ごとに分割して確実なハイライトを行う仕組み ---
         function speakAndLog() {
-            const text = ttsInput.value.trim();
-            if (!text) return;
+            const rawText = ttsInput.value.trim();
+            if (!rawText) return;
             if (isMyTyping) waitBtn.click();
 
-            const uttr = new SpeechSynthesisUtterance(text);
-            uttr.lang = 'ja-JP';
-            
-            const savedVoiceName = localStorage.getItem('ttsVoice');
-            if (savedVoiceName) {
-                const voices = synth.getVoices().filter(v => v.lang.includes('ja'));
-                const selectedVoice = voices.find(v => v.name === savedVoiceName);
-                if (selectedVoice) uttr.voice = selectedVoice;
-            }
-            
-            uttr.rate = savedTtsRate;
-            uttr.pitch = savedTtsPitch;
-
+            // まずチャットログにメッセージを追加
             const displayName = getMyName() === '名無し' ? 'あなた' : getMyName();
-            addMessage(displayName, text, 'tts');
+            addMessage(displayName, rawText, 'tts');
             ttsInput.value = '';
-            broadcastData(text);
+            broadcastData(rawText);
 
             const msgIndex = chatMessages.length - 1;
             function getBubbleText() { return chatLog.querySelector(`.msg-bubble[data-index="${msgIndex}"] .msg-text`); }
 
-            uttr.onstart = () => {
-                speakingQueueCount++;
-                const el = getBubbleText();
-                if (el) el.innerHTML = `<span class="tts-highlight-base">${escapeHTML(text)}</span>`;
-            };
+            // ★ テキストを句読点や改行で分割する（例: "こんにちは。世界" -> ["こんにちは。", "世界"]）
+            const chunks = rawText.match(/.*?[、。，．！？\n]+|.+/g) || [rawText];
+            
+            let currentIndex = 0;
+            let charOffset = 0; // 読み上げ済みの文字数
 
-            uttr.onboundary = (e) => {
-                if (e.name !== 'word' && e.name !== 'sentence') return;
-                const el = getBubbleText();
-                if (!el) return;
-                const hlStart = e.charIndex;
-                let hlLen = e.charLength;
-                if (!hlLen) {
-                    const remaining = text.slice(hlStart);
-                    const next = remaining.search(/[、。，．！？\s]/);
-                    hlLen = next !== -1 ? next + 1 : remaining.length;
+            function speakNextChunk() {
+                // すべてのチャンク（文節）を読み終えたら終了
+                if (currentIndex >= chunks.length) {
+                    speakingQueueCount--;
+                    if (speakingQueueCount <= 0) { speakingQueueCount = 0; renderMessages(); } // ハイライト解除
+                    return;
                 }
-                const hlEnd = Math.min(hlStart + hlLen, text.length);
-                el.innerHTML = `<span class="tts-highlight-base">` + escapeHTML(text.slice(0, hlStart)) + `<span class="tts-highlight-word">${escapeHTML(text.slice(hlStart, hlEnd))}</span>` + escapeHTML(text.slice(hlEnd)) + `</span>`;
-            };
 
-            uttr.onend = uttr.onerror = () => {
-                speakingQueueCount--;
-                if (speakingQueueCount <= 0) { speakingQueueCount = 0; renderMessages(); }
-            };
+                const chunk = chunks[currentIndex];
+                const uttr = new SpeechSynthesisUtterance(chunk);
+                uttr.lang = 'ja-JP';
+                
+                const savedVoiceName = localStorage.getItem('ttsVoice');
+                if (savedVoiceName) {
+                    const voices = synth.getVoices().filter(v => v.lang.includes('ja'));
+                    const selectedVoice = voices.find(v => v.name === savedVoiceName);
+                    if (selectedVoice) uttr.voice = selectedVoice;
+                }
+                
+                uttr.rate = savedTtsRate;
+                uttr.pitch = savedTtsPitch;
 
-            synth.speak(uttr);
+                // そのフレーズの読み上げが始まった瞬間にハイライトを動かす
+                uttr.onstart = () => {
+                    if (currentIndex === 0) speakingQueueCount++;
+                    const el = getBubbleText();
+                    if (!el) return;
+
+                    const hlStart = charOffset;
+                    const hlEnd = charOffset + chunk.length;
+
+                    // 読んでいるチャンク（文節）の部分だけを黄色の太字にする
+                    el.innerHTML = `<span class="tts-highlight-base">` + 
+                        escapeHTML(rawText.slice(0, hlStart)) + 
+                        `<span class="tts-highlight-word">${escapeHTML(rawText.slice(hlStart, hlEnd))}</span>` + 
+                        escapeHTML(rawText.slice(hlEnd)) + 
+                        `</span>`;
+                };
+
+                // そのフレーズを読み終えたら、次のフレーズへバトンタッチ
+                uttr.onend = () => {
+                    charOffset += chunk.length;
+                    currentIndex++;
+                    speakNextChunk(); 
+                };
+
+                // エラーで止まってしまった場合も次へ進める安全対策
+                uttr.onerror = () => {
+                    charOffset += chunk.length;
+                    currentIndex++;
+                    speakNextChunk();
+                };
+
+                // 音声合成を実行
+                synth.speak(uttr);
+            }
+
+            // 最初のフレーズの読み上げをスタート
+            speakNextChunk();
         }
+        // ------------------------------------------------------------------------
 
         speakBtn.onclick = speakAndLog;
         ttsInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; });
@@ -798,37 +824,41 @@
                 if (document.visibilityState === 'visible' && isUserListening && !isApiActive) scheduleRestart(800);
             });
 
-            // --- ★ 変更: マイクの開始と停止を1つのボタンで賢く切り替える（トグル処理） ---
+            // --- ★ 変更: マイク開始ボタンの処理 ---
             startBtn.onclick = () => {
-                if (!isUserListening) {
-                    // 【開始の処理】
-                    isUserListening = true;
-                    
-                    // Android用: 無音を流してマイクが「無音だ」と勘違いしてピコンと鳴るのを防ぐ
-                    startSilentAudio(); 
-                    
-                    if (!isAndroid) initVolumeMeter(); 
-                    recognition = buildRecognition(); 
-                    try { recognition.start(); } catch(e) { scheduleRestart(); }
-                    
-                    startBtn.textContent = '👂 聞き取り中... (停止)';
-                    startBtn.classList.add('listening-active');
-                } else {
-                    // 【停止の処理】
-                    isUserListening = false; 
-                    clearTimeout(restartTimer); 
-                    restartTimer = null;
-                    
-                    stopSilentAudio(); // Androidの無音再生も止める
-
-                    if (recognition) { try { recognition.stop(); } catch(err) {} recognition = null; }
-                    sttInterim.textContent = ""; 
-                    
-                    startBtn.textContent = '🎤 聞き取り開始';
-                    startBtn.classList.remove('listening-active');
-                }
+                isUserListening = true;
+                
+                // Android用: 無音を流してマイクが「無音だ」と勘違いしてピコンと鳴るのを防ぐ
+                startSilentAudio(); 
+                
+                if (!isAndroid) initVolumeMeter(); 
+                recognition = buildRecognition(); 
+                try { recognition.start(); } catch(e) { scheduleRestart(); }
+                
+                // ★ 変更: ボタンを消すのではなく、見た目を変えて「聞き取り中」をアピールする
+                startBtn.textContent = '👂 聞き取り中... (停止)';
+                startBtn.classList.add('listening-active');
             };
-            // ------------------------------------------------------------------------
+
+            // --- ★ 変更: マイク停止（聞き取り中ボタンを押した時）の処理 ---
+            // ※「停止ボタン(stopBtn)」は廃止し、同じボタンでオンオフできるようにしました
+            startBtn.addEventListener('click', function(e) {
+                // 初回のクリック（開始）の時は何もしないための判定
+                if (!isUserListening || e.isTrusted === false || this.textContent === '🎤 聞き取り開始') return;
+                
+                isUserListening = false; 
+                clearTimeout(restartTimer); 
+                restartTimer = null;
+                
+                stopSilentAudio(); // Androidの無音再生も止める
+
+                if (recognition) { try { recognition.stop(); } catch(err) {} recognition = null; }
+                sttInterim.textContent = ""; 
+                
+                // ボタンの見た目を元に戻す
+                startBtn.textContent = '🎤 聞き取り開始';
+                startBtn.classList.remove('listening-active');
+            });
         }
 
         // --- エクスポート ---
