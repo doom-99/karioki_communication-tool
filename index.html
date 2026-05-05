@@ -90,8 +90,8 @@
         @media (max-width: 500px) {
             h1 { font-size: 1.1rem; }
             button { padding: 10px 12px; }
-            .header { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .header > div { align-self: flex-end; }
+            /* ★ 変更: スマホ環境でもヘッダーを横並びに保つように修正 */
+            .header { flex-direction: row; align-items: center; justify-content: space-between; }
             .chat-textarea { line-height: 1.35; }
         }
 
@@ -105,7 +105,7 @@
         .msg-row.right .msg-wrapper { align-items: flex-end; }
         .msg-row.left .msg-wrapper { align-items: flex-start; }
         .msg-name { font-size: 0.75em; color: #666; margin-bottom: 4px; font-weight: bold; }
-        .msg-bubble { padding: 6px 10px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .msg-bubble { padding: 6px 10px; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
         .msg-row.right .msg-bubble { border-top-right-radius: 2px; }
         .msg-row.left .msg-bubble { border-top-left-radius: 2px; }
         .msg-text { white-space: pre-wrap; word-wrap: break-word; display: block; color: #333; }
