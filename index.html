@@ -1,4 +1,4 @@
-<!-- フレーズハイライト -->
+<!-- デザイン調整 -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -7,13 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>総合コミュニケーション支援ツール (Web版)</title>
     <style>
-        :root { --font-size: 16px; }
-        body { font-family: sans-serif; background-color: #f4f7f6; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; margin: 0; padding: 10px; font-size: var(--font-size); color: #333; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; overflow: hidden; }
+        :root { --font-size: 12px; }
+        body { font-family: sans-serif; background-color: #f4f7f6; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; margin: 0; padding: 6px; font-size: var(--font-size); color: #333; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; overflow: hidden; }
         
         .header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
         /* ★ 変更: 通信パネルのデザイン（PCでは左側に幅を固定して表示） */
         /* ★ 変更: 通信パネルの幅を細く（240px）してスリム化 */
-        .sync-panel { background: #e3f2fd; padding: 10px 15px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 240px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }        .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
+        .sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 200px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
+        .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
         h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
         
         .invite-btn { background-color: #6c757d; padding: 4px 8px; font-size: 0.85em; margin-left: 5px; color: white; border: none; border-radius: 4px; cursor: pointer; }
@@ -21,7 +22,7 @@
         #qrContainer { display: none; width: 100%; margin-top: 10px; padding: 15px; background: white; border-radius: 8px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
         #qrcode { display: inline-block; margin-top: 10px; padding: 10px; background: white; border: 1px solid #eee; border-radius: 8px; }
 
-        .chat-container { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
+        .chat-container { background: white; padding: 13px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
         .chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin-bottom: 10px; flex-shrink: 0; flex-wrap: wrap; gap: 5px;}
         h2 { font-size: 1.1rem; margin: 0; }
         
@@ -30,7 +31,7 @@
             border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; 
             background-color: #f0f4f8; transition: border-color 0.2s; line-height: 1.4; 
             overflow-y: auto; cursor: text;
-            display: flex; flex-direction: column; gap: 12px;
+            display: flex; flex-direction: column; gap: 8px;
         }
         .chat-textarea:focus { outline: none; border-color: #0d6efd; background-color: #fff; }
         .chat-textarea:empty:before { content: attr(data-placeholder); color: #999; pointer-events: none; }
@@ -104,7 +105,7 @@
         .msg-row.right .msg-wrapper { align-items: flex-end; }
         .msg-row.left .msg-wrapper { align-items: flex-start; }
         .msg-name { font-size: 0.75em; color: #666; margin-bottom: 4px; font-weight: bold; }
-        .msg-bubble { padding: 8px 14px; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .msg-bubble { padding: 6px 10px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
         .msg-row.right .msg-bubble { border-top-right-radius: 2px; }
         .msg-row.left .msg-bubble { border-top-left-radius: 2px; }
         .msg-text { white-space: pre-wrap; word-wrap: break-word; display: block; color: #333; }
