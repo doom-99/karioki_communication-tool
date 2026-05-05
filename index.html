@@ -1,4 +1,4 @@
-<!-- デザイン調整 -->
+<!--  -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -176,7 +176,7 @@
             <!-- ★ 変更: スタイル指定をCSSに移動するため、HTMLをシンプルに -->
             <summary class="sync-summary" style="line-height: 1.4;">
                 📡 通信・招待機能を開く 
-                <span id="syncStatusSummary">(オフライン)</span>
+                <span id="syncStatusSummary">（オフライン）</span>
             </summary>
             <div style="margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 15px;">
                 
@@ -314,6 +314,9 @@
         const waitBtn = document.getElementById('waitBtn');
         const typingIndicator = document.getElementById('typingIndicator');
 
+        // ★ 追加: 自分がホスト（部屋の作成者）かどうかを判定するフラグ
+        let isRoomHost = true;
+
         waitBtn.onclick = () => {
             isMyTyping = !isMyTyping;
             if (isMyTyping) {
@@ -382,6 +385,7 @@
                 };
 
                 if (inviteId && inviteId !== id) {
+                    isRoomHost = false; // ★ 追加: 招待URLから入った人は「ゲスト」になる
                     document.getElementById('targetPeerId').value = inviteId;
                     setTimeout(() => document.getElementById('connectBtn').click(), 800);
                 }
@@ -393,6 +397,7 @@
         document.getElementById('connectBtn').onclick = () => {
             const targetId = document.getElementById('targetPeerId').value.trim();
             if (!targetId) return;
+            isRoomHost = false; // ★ 追加: 自分からIDを入力して繋ぎに行く人は「ゲスト」になる
             const conn = peer.connect(targetId);
             setupConnection(conn);
         };
@@ -400,10 +405,11 @@
         function setupConnection(conn) {
             conn.on('open', () => {
                 connections.push(conn);
-                document.getElementById('syncStatus').textContent = `✅ 接続完了 (${connections.length}台と通信中)`;
-                document.getElementById('syncStatusSummary').textContent = `(✅ ${connections.length}台と通信中)`;
+                document.getElementById('syncStatus').textContent = `✅ 接続完了（${connections.length}台と通信中）`;
+                document.getElementById('syncStatusSummary').textContent = `（✅ ${connections.length}台と通信中）`;
                 document.getElementById('targetPeerId').value = '';
-                if (chatMessages.length > 0) conn.send({ type: 'history', messages: chatMessages });
+                // ★ 変更: 長さに関係なく、自分がホストかどうかの情報を乗せて履歴を送る
+                conn.send({ type: 'history', messages: chatMessages, isHost: isRoomHost });
             });
 
             conn.on('data', (data) => {
@@ -413,9 +419,11 @@
                     connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
                 }
                 else if (data.type === 'history') {
-                    if (data.messages && data.messages.length > chatMessages.length) {
+                    // ★ 変更: メッセージ数ではなく、相手が「ホスト」かどうかで上書きを判断する
+                    if (data.isHost) {
                         const myCurrentName = getMyName() === '名無し' ? 'あなた' : getMyName();
-                        chatMessages = data.messages.map(m => {
+                        // 相手(ホスト)の履歴で完全に上書きする
+                        chatMessages = (data.messages || []).map(m => {
                             if (m.name !== myCurrentName) return { name: m.name, text: m.text, type: 'remote' };
                             return m; 
                         });
@@ -439,9 +447,9 @@
 
             conn.on('close', () => {
                 connections = connections.filter(c => c !== conn);
-                const st = connections.length > 0 ? `✅ 接続完了 (${connections.length}台と通信中)` : `現在オフラインです（1人で使用中）`;
+                const st = connections.length > 0 ? `✅ 接続完了（${connections.length}台と通信中）` : `現在オフラインです（1人で使用中）`;
                 document.getElementById('syncStatus').textContent = st;
-                document.getElementById('syncStatusSummary').textContent = connections.length > 0 ? `(✅ ${connections.length}台と通信中)` : `(オフライン)`;
+                document.getElementById('syncStatusSummary').textContent = connections.length > 0 ? `（✅ ${connections.length}台と通信中）` : `（オフライン）`;
             });
         }
 
