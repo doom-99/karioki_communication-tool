@@ -125,6 +125,16 @@
             width: 100%;
         }
 
+        /* ★ 追加: 通信状況テキストの基本デザイン（PCの細いパネル用＝改行する） */
+        #syncStatusSummary {
+            display: block;
+            font-size: 0.85em;
+            font-weight: normal;
+            color: #555;
+            margin-top: 4px;
+            padding-left: 28px;
+        }
+
         /* 画面幅が768px以下のスマホ・タブレット向けの設定 */
         @media (max-width: 768px) {
             .main-wrapper {
@@ -134,6 +144,13 @@
             .sync-panel {
                 width: 100%; /* スマホでは横幅いっぱいにする */
                 height: auto;
+            }
+            
+            /* ★ 追加: スマホの時は横幅に余裕があるため、横並び（inline）に戻す */
+            #syncStatusSummary {
+                display: inline;
+                margin-top: 0;
+                padding-left: 8px;
             }
         }
 
@@ -156,10 +173,10 @@
 
         <!-- ★ 変更: (オフライン)を改行し、入力欄などを細いパネルに合わせて縦並びに最適化 -->
         <details class="sync-panel">
+            <!-- ★ 変更: スタイル指定をCSSに移動するため、HTMLをシンプルに -->
             <summary class="sync-summary" style="line-height: 1.4;">
                 📡 通信・招待機能を開く 
-                <!-- ★ 追加: display: block を使って下に落とし、少し字下げ(padding-left)する -->
-                <span id="syncStatusSummary" style="display: block; font-size: 0.85em; font-weight: normal; color: #555; margin-top: 4px; padding-left: 28px;">(オフライン)</span>
+                <span id="syncStatusSummary">(オフライン)</span>
             </summary>
             <div style="margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 15px;">
                 
