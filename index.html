@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>総合コミュニケーション支援ツール (Web版)</title>
     <style>
-        :root { --font-size: 12px; }
+        :root { --font-size: 14px; }
         body { font-family: sans-serif; background-color: #f4f7f6; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; margin: 0; padding: 6px; font-size: var(--font-size); color: #333; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; overflow: hidden; }
         
         .header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
         /* ★ 変更: 通信パネルのデザイン（PCでは左側に幅を固定して表示） */
         /* ★ 変更: 通信パネルの幅を細く（240px）してスリム化 */
-        .sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 200px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
+        .sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 220px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
         .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
         h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
         
@@ -31,7 +31,7 @@
             border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; 
             background-color: #f0f4f8; transition: border-color 0.2s; line-height: 1.4; 
             overflow-y: auto; cursor: text;
-            display: flex; flex-direction: column; gap: 8px;
+            display: flex; flex-direction: column; gap: 4px;
         }
         .chat-textarea:focus { outline: none; border-color: #0d6efd; background-color: #fff; }
         .chat-textarea:empty:before { content: attr(data-placeholder); color: #999; pointer-events: none; }
@@ -60,7 +60,7 @@
         }
         
         input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; }
-        button { background-color: #0d6efd; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s; white-space: nowrap; }
+        button { background-color: #0d6efd; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s; white-space: nowrap; }
         button:hover { background-color: #0b5ed7; }
         .stop-btn { background-color: #dc3545; }
         .stop-btn:hover { background-color: #c82333; }
