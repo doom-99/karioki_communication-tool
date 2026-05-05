@@ -1,4 +1,4 @@
-<!--  -->
+<!-- 同じ人物の吹き出しが続く場合，名前の表示を省略する -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -505,9 +505,15 @@
                 if (m.type === 'remote') s = getColorForName(m.name);
                 const alignClass = m.type === 'remote' ? 'left' : 'right';
 
+                // ★ 追加: 1つ前のメッセージと同じ送信者かどうかを判定
+                const isSameSender = i > 0 && chatMessages[i - 1].name === m.name && chatMessages[i - 1].type === m.type;
+                
+                // ★ 変更: 同じ送信者の場合は名前のHTMLを出力しないようにする
+                const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>`;
+
                 return `<div class="msg-row ${alignClass}">` +
                        `<div class="msg-wrapper">` +
-                       `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>` +
+                       nameHtml +
                        `<div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border};">` +
                        `<span class="msg-text">${escapeHTML(m.text)}</span>` +
                        `</div></div></div>`;
