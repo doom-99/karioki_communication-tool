@@ -404,12 +404,22 @@
 
         function setupConnection(conn) {
             conn.on('open', () => {
-                connections.push(conn);
+                // 同じ接続が重複して登録されるのを防ぐ安全対策
+                if (!connections.includes(conn)) connections.push(conn);
                 document.getElementById('syncStatus').textContent = `✅ 接続完了（${connections.length}台と通信中）`;
                 document.getElementById('syncStatusSummary').textContent = `（✅ ${connections.length}台と通信中）`;
                 document.getElementById('targetPeerId').value = '';
-                // ★ 変更: 長さに関係なく、自分がホストかどうかの情報を乗せて履歴を送る
-                conn.send({ type: 'history', messages: chatMessages, isHost: isRoomHost });
+                
+                // ★ 変更: 接続直後は通信が不安定なため、0.4秒待ってから確実に履歴のキャッチボールを行う
+                setTimeout(() => {
+                    if (isRoomHost) {
+                        // 自分がホストなら、自分の履歴を相手に送る
+                        conn.send({ type: 'history', messages: chatMessages, isHost: true });
+                    } else {
+                        // 自分がゲストなら、ホストに「履歴をください」と要求する
+                        conn.send({ type: 'request_history' });
+                    }
+                }, 400);
             });
 
             conn.on('data', (data) => {
@@ -418,8 +428,13 @@
                     addMessage(senderName, data.text.trim(), 'remote');
                     connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
                 }
+                else if (data.type === 'request_history') {
+                    // ★ 追加: ゲストから「履歴をください」と言われたら、ホストとして履歴を送り返す
+                    if (isRoomHost) {
+                        conn.send({ type: 'history', messages: chatMessages, isHost: true });
+                    }
+                }
                 else if (data.type === 'history') {
-                    // ★ 変更: メッセージ数ではなく、相手が「ホスト」かどうかで上書きを判断する
                     if (data.isHost) {
                         const myCurrentName = getMyName() === '名無し' ? 'あなた' : getMyName();
                         // 相手(ホスト)の履歴で完全に上書きする
