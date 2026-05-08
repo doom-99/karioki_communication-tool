@@ -1,7 +1,4 @@
-<!-- ※環境音認識（AI）は今後のアップデートで
- メイン画面の通信パネル付近に移動する予定のため、
- 現在は設定項目から外しています。
- という文言を削除 -->
+<!-- コードの改善 -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -104,12 +101,18 @@
 
     <script>
         // --- トースト通知 ---
+        let toastTimer = null;
         function showSaveToast() {
             const toast = document.getElementById('saveToast');
             toast.style.display = 'block';
             toast.style.animation = 'none';
-            toast.offsetHeight; 
-            toast.style.animation = 'fadeOut 3s forwards';
+            
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.style.animation = 'fadeOut 1s forwards';
+                // アニメーション完了後に完全に非表示にする
+                toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 1000);
+            }, 2000); // 2秒間表示してからフェードアウト
         }
 
         // --- フォントサイズ ---
