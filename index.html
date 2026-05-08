@@ -1,4 +1,4 @@
-<!-- 同じ人物の吹き出しが続く場合，名前の表示を省略する -->
+<!-- コードの改善 -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -13,7 +13,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
         /* ★ 変更: 通信パネルのデザイン（PCでは左側に幅を固定して表示） */
         /* ★ 変更: 通信パネルの幅を細く（240px）してスリム化 */
-        .sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 220px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
+        .sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 230px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
         .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
         h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
         
@@ -31,7 +31,7 @@
             border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; 
             background-color: #f0f4f8; transition: border-color 0.2s; line-height: 1.4; 
             overflow-y: auto; cursor: text;
-            display: flex; flex-direction: column; gap: 4px;
+            display: flex; flex-direction: column; gap: 8px;
         }
         .chat-textarea:focus { outline: none; border-color: #0d6efd; background-color: #fff; }
         .chat-textarea:empty:before { content: attr(data-placeholder); color: #999; pointer-events: none; }
@@ -225,7 +225,7 @@
             <div id="typingIndicator" class="typing-indicator"></div>
             <div id="selectionPopup">📖 辞書に登録</div>
             
-            <div id="chatLog" class="chat-textarea" contenteditable="false" data-placeholder="ここに会話の履歴が表示されます..."></div>
+            <div id="chatLog" class="chat-textarea" data-placeholder="ここに会話の履歴が表示されます..."></div>
             <div id="sttInterim"></div>
 
             <div class="meter-container">
@@ -296,8 +296,13 @@
             savedTtsPitch = parseFloat(localStorage.getItem('ttsPitch')) || 1.0;
         }
         
-        // 1秒に1回、裏側でこっそり設定ファイルの変更をチェックする
-        setInterval(loadSettings, 1000);
+        // ★ 変更: 無駄なループ処理を廃止し、タブ間の設定変更をイベントで即座に検知する
+        window.addEventListener('storage', (e) => {
+            // 監視対象のキーが変更された時だけ設定を再読み込み
+            if (['userDictionary', 'appFontSize', 'ttsRate', 'ttsPitch', 'ttsVoice'].includes(e.key)) {
+                loadSettings();
+            }
+        });
         document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
 
         // --- 通信機能 ---
@@ -853,8 +858,11 @@
                     }
 
                     sttInterim.textContent = interimTranscript ? "👂 聞き取り中...： " + interimTranscript : "";
-                    const isFocused = (document.activeElement === chatLog);
-                    if (!isFocused && (newFinal || interimTranscript)) chatLog.scrollTop = chatLog.scrollHeight;
+                    // ★ 変更: スクロール位置が一番下付近（50px以内）にある時だけ自動追従させる
+                    const isAtBottom = chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 50;
+                    if (isAtBottom && (newFinal || interimTranscript)) {
+                        chatLog.scrollTop = chatLog.scrollHeight;
+                    }
                 };
 
                 rec.onerror = (event) => {
