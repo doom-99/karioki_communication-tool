@@ -21,8 +21,16 @@ const chatLog = document.getElementById('chatLog');
 const sttInterim = document.getElementById('sttInterim');
 const ttsInput = document.getElementById('ttsInput');
 
+// --- 修正: 確実にHTMLを読み込んでから要素を取得するように変更 ---
+let chatLog, sttInterim, ttsInput;
+
 // --- 初期化 ---
 window.addEventListener('DOMContentLoaded', () => {
+    // ここで初めて要素を探しに行く（HTML読み込み完了後）
+    chatLog = document.getElementById('chatLog');
+    sttInterim = document.getElementById('sttInterim');
+    ttsInput = document.getElementById('ttsInput');
+
     loadSettings();
     initWebRTC(); // webrtc.jsで定義されている
     
@@ -165,11 +173,18 @@ function initUIEvents() {
     // 送信
     document.getElementById('speakBtn').onclick = speakAndLog;
     
-    // Enter送信
+    // ★Enter送信の修正
     ttsInput.addEventListener('keydown', (e) => {
+        // IME（漢字変換）確定のEnterでは送信しないようにする
         if (e.isComposing || e.keyCode === 229) return;
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); speakAndLog();
+        
+        if (e.key === 'Enter') {
+            if (!e.shiftKey) { // Shift+Enterなら改行、Enter単体なら送信
+                e.preventDefault(); 
+                speakAndLog();
+                // 送信後に高さをリセット（自動リサイズ機能用）
+                setTimeout(() => ttsInput.style.height = 'auto', 10);
+            }
         }
     });
 
@@ -214,6 +229,49 @@ function initUIEvents() {
         menuBtn.onclick = () => { panel.classList.add('active'); overlay.classList.add('active'); panel.open = true; };
         overlay.onclick = () => { panel.classList.remove('active'); overlay.classList.remove('active'); };
     }
+}
+
+// --- 修正: 辞書登録ポップアップの完全復元 ---
+let tempSelectedText = ""; // ポップアップで使う変数を関数の外で定義
+
+function initSelectionPopup() {
+    const selectionPopup = document.getElementById('selectionPopup');
+    if (!selectionPopup) return; // 要素がなければ何もしない
+
+    // チャットログ内での選択を検知
+    chatLog.addEventListener('mouseup', (e) => {
+        const selectedText = window.getSelection().toString().trim();
+        if (selectedText) {
+            tempSelectedText = selectedText;
+            // クリックした位置の近くにポップアップを出す
+            selectionPopup.style.left = (e.pageX - 50) + 'px';
+            selectionPopup.style.top = (e.pageY - 45) + 'px';
+            selectionPopup.style.display = 'block';
+        } else {
+            selectionPopup.style.display = 'none';
+        }
+    });
+
+    // 画面の他の場所をクリックしたらポップアップを消す
+    document.addEventListener('mousedown', (e) => {
+        if (e.target !== selectionPopup) {
+            // 選択解除を待ってから消す
+            setTimeout(() => { 
+                if (!window.getSelection().toString().trim()) selectionPopup.style.display = 'none'; 
+            }, 10);
+        }
+    });
+
+    // ポップアップ（辞書に登録）を押した時の動作
+    selectionPopup.addEventListener('mousedown', (e) => {
+        e.preventDefault(); 
+        if (tempSelectedText) {
+            const settingsUrl = 'settings.html?addWord=' + encodeURIComponent(tempSelectedText);
+            window.open(settingsUrl, '_blank');
+            selectionPopup.style.display = 'none';
+            window.getSelection().removeAllRanges(); 
+        }
+    });
 }
 
 // 他のファイルから呼ばれる指標表示

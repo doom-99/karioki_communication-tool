@@ -84,7 +84,14 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 .msg-bubble { padding: 6px 10px; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
 .msg-row.right .msg-bubble { border-top-right-radius: 2px; }
 .msg-row.left .msg-bubble { border-top-left-radius: 2px; }
-.msg-text { white-space: pre-wrap; word-wrap: break-word; display: block; color: #333; }
+/* 吹き出しのテキスト */
+.msg-text { 
+    white-space: pre-wrap; 
+    word-wrap: break-word; 
+    display: block; 
+    color: #333; 
+    line-height: 1.6; /* ★追加: 1.5〜1.7くらいが読みやすいです */
+}
 
 /* 下部入力エリア */
 .meter-container { display: flex; align-items: center; gap: 10px; margin: 5px 0 10px 0; flex-shrink: 0; }
