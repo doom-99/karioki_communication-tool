@@ -11,6 +11,8 @@
 </head>
 <body>
     <div class="header">
+        <button id="mobileMenuBtn" class="mobile-menu-btn">☰ 通信設定</button>
+        
         <h1>コミュニケーション支援ツール</h1>
         <div>
             <a href="settings.html" target="_blank" class="settings-link-btn">⚙️ 設定・辞書</a>
@@ -18,7 +20,9 @@
     </div>
 
     <div class="main-wrapper">
-        <details class="sync-panel">
+        <div id="drawerOverlay" class="drawer-overlay"></div>
+        
+        <details class="sync-panel" id="syncPanel">
             <summary class="sync-summary">
                 📡 通信・招待機能を開く 
                 <span id="syncStatusSummary">（オフライン）</span>

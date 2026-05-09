@@ -133,6 +133,24 @@ function initUIEvents() {
     document.getElementById('clearChatBtn').onclick = () => {
         if(confirm("履歴を消去しますか？")) { chatMessages = []; renderAllMessages(); localStorage.removeItem('chatMessages'); }
     };
+
+    // --- スマホ用ドロワーメニューの開閉制御 ---
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const syncPanel = document.getElementById('syncPanel');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+
+    if (mobileMenuBtn && syncPanel && drawerOverlay) {
+        mobileMenuBtn.onclick = () => {
+            syncPanel.classList.add('active');
+            drawerOverlay.classList.add('active');
+            syncPanel.open = true; // 開いた時に自動でdetailsを展開状態にする
+        };
+        // 暗い背景部分をタップしたら閉じる
+        drawerOverlay.onclick = () => {
+            syncPanel.classList.remove('active');
+            drawerOverlay.classList.remove('active');
+        };
+    }
 }
 
 let recognition = null;
