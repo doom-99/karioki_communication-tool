@@ -1,6 +1,6 @@
 let peer = null;
 let connections = [];
-let isRoomHost = true;
+let isRoomHost = true; // デフォルトはホスト
 
 function initWebRTC() {
     peer = new Peer();
@@ -10,9 +10,12 @@ function initWebRTC() {
     peer.on('open', (id) => {
         document.getElementById('myPeerId').textContent = id;
         setupInviteButtons(id);
+        
+        // URLにroomが含まれていればゲストとして接続
         if (inviteId && inviteId !== id) {
-            isRoomHost = false;
+            isRoomHost = false; 
             document.getElementById('targetPeerId').value = inviteId;
+            // 接続ボタンを自動クリック
             setTimeout(() => document.getElementById('connectBtn').click(), 800);
         }
     });
@@ -36,7 +39,7 @@ function setupInviteButtons(id) {
     qrBtn.style.display = 'inline-block';
 
     copyBtn.onclick = () => {
-        navigator.clipboard.writeText(inviteUrl).then(() => alert("URLをコピーしました．"));
+        navigator.clipboard.writeText(inviteUrl).then(() => alert("招待URLをコピーしました．"));
     };
 
     qrBtn.onclick = () => {
@@ -57,22 +60,46 @@ function setupConnection(conn) {
     conn.on('open', () => {
         if (!connections.includes(conn)) connections.push(conn);
         updateSyncStatusUI();
+        
+        // ★修正: 接続直後に履歴をやり取りする
         setTimeout(() => {
-            if (isRoomHost) conn.send({ type: 'history', messages: chatMessages, isHost: true });
-            else conn.send({ type: 'request_history' });
-        }, 400);
+            if (isRoomHost) {
+                // ホストなら現在の履歴を送信
+                conn.send({ 
+                    type: 'history', 
+                    messages: window.chatMessages, // window経由で参照
+                    isHost: true 
+                });
+            } else {
+                // ゲストならホストに履歴を要求
+                conn.send({ type: 'request_history' });
+            }
+        }, 500);
     });
 
     conn.on('data', (data) => {
         if (data.type === 'text') {
-            addMessage(data.name || '相手', data.text.trim(), 'remote');
+            // app.jsのaddMessageを呼び出す
+            if (window.addMessage) {
+                window.addMessage(data.name || '相手', data.text.trim(), 'remote');
+            }
+            // 他の接続先にも転送
             connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
-        } else if (data.type === 'history' && data.isHost) {
-            syncHistory(data.messages);
-        } else if (data.type === 'request_history' && isRoomHost) {
-            conn.send({ type: 'history', messages: chatMessages, isHost: true });
-        } else if (data.type === 'typing') {
-            handleRemoteTyping(data);
+        } 
+        else if (data.type === 'request_history') {
+            if (isRoomHost) {
+                conn.send({ type: 'history', messages: window.chatMessages, isHost: true });
+            }
+        } 
+        else if (data.type === 'history') {
+            if (data.isHost && window.syncHistory) {
+                window.syncHistory(data.messages);
+            }
+        } 
+        else if (data.type === 'typing') {
+            if (window.handleRemoteTyping) {
+                window.handleRemoteTyping(data);
+            }
             connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
         }
     });
@@ -85,17 +112,19 @@ function setupConnection(conn) {
 
 function updateSyncStatusUI() {
     const count = connections.length;
-    const status = count > 0 ? `✅ 接続完了 (${count}台)` : `現在オフラインです`;
-    document.getElementById('syncStatus').textContent = status;
+    const statusText = count > 0 ? `✅ 接続完了 (${count}台)` : `現在オフラインです`;
+    document.getElementById('syncStatus').textContent = statusText;
     document.getElementById('syncStatusSummary').textContent = count > 0 ? `(✅ ${count}台)` : `(オフライン)`;
 }
 
+// app.jsから呼ばれる関数
 function broadcastData(text) {
-    const name = getMyName();
+    const name = window.getMyName ? window.getMyName() : '名無し';
     connections.forEach(conn => { if (conn.open) conn.send({ type: 'text', text, name }); });
 }
 
 function broadcastTypingState(isTyping) {
-    const name = getMyName() === '名無し' ? '相手' : getMyName();
-    connections.forEach(conn => { if (conn.open) conn.send({ type: 'typing', name, isTyping }); });
+    const name = window.getMyName ? window.getMyName() : '名無し';
+    const currentName = name === '名無し' ? '相手' : name;
+    connections.forEach(conn => { if (conn.open) conn.send({ type: 'typing', name: currentName, isTyping }); });
 }

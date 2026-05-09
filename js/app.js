@@ -1,5 +1,5 @@
-// --- グローバル変数 ---
-let chatMessages = [];
+// --- グローバル変数 (windowに紐付けて共有可能にする) ---
+window.chatMessages = [];
 let isUserListening = false;
 let speakingQueueCount = 0;
 let isMyTyping = false;
@@ -16,10 +16,7 @@ let workletNode = null;
 let envStream = null;
 let lastCaptionTime = 0;
 
-// Android判定
 const isAndroid = /Android/i.test(navigator.userAgent);
-
-// DOM要素
 const chatLog = document.getElementById('chatLog');
 const sttInterim = document.getElementById('sttInterim');
 const ttsInput = document.getElementById('ttsInput');
@@ -27,21 +24,27 @@ const ttsInput = document.getElementById('ttsInput');
 // --- 初期化 ---
 window.addEventListener('DOMContentLoaded', () => {
     loadSettings();
-    initWebRTC(); // webrtc.jsで定義
+    initWebRTC(); // webrtc.jsで定義されている
     
     const saved = localStorage.getItem('chatMessages');
     if (saved) {
-        try { chatMessages = JSON.parse(saved); renderAllMessages(); } catch(e) { chatMessages = []; }
+        try { window.chatMessages = JSON.parse(saved); renderAllMessages(); } catch(e) { window.chatMessages = []; }
     }
 
     if (isAndroid) document.querySelector('.meter-container').style.display = 'none';
 
     initUIEvents();
-    initSelectionPopup(); // 辞書登録ポップアップの初期化
+    initSelectionPopup();
+    
+    // ダークモードの初期反映
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
 });
 
+// 設定変更の監視
 window.addEventListener('storage', (e) => {
-    if (['userDictionary', 'appFontSize', 'ttsRate', 'ttsPitch', 'ttsVoice'].includes(e.key)) loadSettings();
+    if (['userDictionary', 'appFontSize', 'ttsRate', 'ttsPitch', 'ttsVoice', 'darkMode'].includes(e.key)) {
+        loadSettings();
+    }
 });
 
 function loadSettings() {
@@ -50,44 +53,35 @@ function loadSettings() {
     savedTtsRate = parseFloat(localStorage.getItem('ttsRate')) || 1.0;
     savedTtsPitch = parseFloat(localStorage.getItem('ttsPitch')) || 1.0;
     document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
-
-    // ★追加: ダークモードの同期
     document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
 }
 
-function getMyName() { 
+// 他のファイルから呼べるようにwindowに公開
+window.getMyName = function() { 
     return document.getElementById('myNameInput').value.trim() || '名無し'; 
-}
+};
 
-// --- スマホ用ドロワーメニューの開閉制御 ---
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const syncPanel = document.querySelector('.sync-panel');
-const drawerOverlay = document.getElementById('drawerOverlay');
-
-if (mobileMenuBtn && syncPanel && drawerOverlay) {
-    mobileMenuBtn.onclick = () => {
-        syncPanel.classList.add('active');
-        drawerOverlay.classList.add('active');
-        syncPanel.open = true; 
-    };
-    drawerOverlay.onclick = () => {
-        syncPanel.classList.remove('active');
-        drawerOverlay.classList.remove('active');
-    };
-}
-
-// --- メッセージ描画 ---
-function addMessage(name, text, type) {
-    const index = chatMessages.length;
+// --- メッセージ操作 ---
+window.addMessage = function(name, text, type) {
+    const index = window.chatMessages.length;
     const msgObj = { name, text, type };
-    chatMessages.push(msgObj);
+    window.chatMessages.push(msgObj);
     appendMessageToDOM(msgObj, index);
     saveMessages();
-}
+};
+
+window.syncHistory = function(messages) {
+    const myName = window.getMyName();
+    window.chatMessages = (messages || []).map(m => {
+        return m.name !== myName ? { name: m.name, text: m.text, type: 'remote' } : m;
+    });
+    renderAllMessages();
+    saveMessages();
+};
 
 function renderAllMessages() {
     chatLog.innerHTML = '';
-    chatMessages.forEach((m, i) => appendMessageToDOM(m, i));
+    window.chatMessages.forEach((m, i) => appendMessageToDOM(m, i));
     chatLog.scrollTop = chatLog.scrollHeight;
 }
 
@@ -97,33 +91,19 @@ function appendMessageToDOM(m, i) {
         stt: { bg: '#e3f2fd', border: '#42a5f5', nameColor: '#1565c0' },
         remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }
     };
-    
     let s = MSG_STYLES[m.type] || MSG_STYLES.stt;
     if (m.type === 'remote') s = getColorForName(m.name);
     const alignClass = m.type === 'remote' ? 'left' : 'right';
-
-    const isSameSender = i > 0 && chatMessages[i - 1].name === m.name && chatMessages[i - 1].type === m.type;
+    const isSameSender = i > 0 && window.chatMessages[i - 1].name === m.name && window.chatMessages[i - 1].type === m.type;
     const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>`;
-
     const html = `<div class="msg-row ${alignClass}"><div class="msg-wrapper">${nameHtml}<div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border};"><span class="msg-text">${escapeHTML(m.text)}</span></div></div></div>`;
-    
     chatLog.insertAdjacentHTML('beforeend', html);
-    const isAtBottom = chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 50;
-    if (isAtBottom || i === chatMessages.length - 1) chatLog.scrollTop = chatLog.scrollHeight;
+    chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function syncHistory(messages) {
-    const myName = getMyName() === '名無し' ? 'あなた' : getMyName();
-    chatMessages = (messages || []).map(m => {
-        return m.name !== myName ? { name: m.name, text: m.text, type: 'remote' } : m;
-    });
-    renderAllMessages();
-    saveMessages();
-}
-
-function saveMessages() { localStorage.setItem('chatMessages', JSON.stringify(chatMessages)); }
-function messagesToText() { return chatMessages.map(m => `${m.name}： ${m.text}`).join('\n'); }
-function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[tag])); }
+function saveMessages() { localStorage.setItem('chatMessages', JSON.stringify(window.chatMessages)); }
+function messagesToText() { return window.chatMessages.map(m => `${m.name}： ${m.text}`).join('\n'); }
+function escapeHTML(str) { return str.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])); }
 function getColorForName(n) {
     const pals = [{bg:'#fff3e0',c:'#e65100'},{bg:'#fce4ec',c:'#c2185b'},{bg:'#e3f2fd',c:'#1565c0'}];
     let h = 0; for(let i=0;i<n.length;i++) h = n.charCodeAt(i) + ((h<<5)-h);
@@ -131,150 +111,72 @@ function getColorForName(n) {
     return { bg: p.bg, border: p.c, nameColor: p.c };
 }
 
-// --- Android ピコン音防止ハック ---
-let silentAudioCtx = null;
-function startSilentAudio() {
-    if (!isAndroid || silentAudioCtx) return;
-    try {
-        silentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = silentAudioCtx.createOscillator();
-        const gain = silentAudioCtx.createGain();
-        gain.gain.value = 0.0001;
-        oscillator.connect(gain);
-        gain.connect(silentAudioCtx.destination);
-        oscillator.start();
-    } catch(e) { console.log(e); }
-}
-function stopSilentAudio() {
-    if (silentAudioCtx) { silentAudioCtx.close(); silentAudioCtx = null; }
-}
+// --- 通信ダミー（webrtc.jsがない場合のエラー回避） ---
+if (typeof broadcastData !== 'function') window.broadcastData = () => {};
+if (typeof broadcastTypingState !== 'function') window.broadcastTypingState = () => {};
 
-// --- マイク音量メーター ---
-let audioContextMeter; let analyser;
-async function initVolumeMeter() {
-    if (audioContextMeter || isAndroid) return;
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContextMeter = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContextMeter.createAnalyser();
-        analyser.fftSize = 256;
-        const source = audioContextMeter.createMediaStreamSource(stream);
-        source.connect(analyser);
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const volumeMeter = document.getElementById('volumeMeter');
-        
-        function updateMeter() {
-            if (!isUserListening) { volumeMeter.style.width = '0%'; requestAnimationFrame(updateMeter); return; }
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0; for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            let percent = Math.min(100, ((sum / dataArray.length) / 50) * 100);
-            volumeMeter.style.width = percent + '%';
-            if (percent > 80) volumeMeter.style.background = '#f44336';
-            else if (percent > 10) volumeMeter.style.background = '#4caf50';
-            else volumeMeter.style.background = '#8bc34a';
-            requestAnimationFrame(updateMeter);
-        }
-        updateMeter();
-    } catch (err) { console.log("マイク音量取得失敗", err); }
-}
-
-// --- UIイベント全般 ---
+// --- UIイベント ---
 function initUIEvents() {
-    const startBtn = document.getElementById('startBtn');
-    const waitBtn = document.getElementById('waitBtn');
+    // 送信
+    document.getElementById('speakBtn').onclick = speakAndLog;
+    
+    // Enter送信
+    ttsInput.addEventListener('keydown', (e) => {
+        if (e.isComposing || e.keyCode === 229) return;
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); speakAndLog();
+        }
+    });
 
+    // 聞き取り
+    const startBtn = document.getElementById('startBtn');
     startBtn.onclick = () => {
-        if (!isUserListening) {
-            isUserListening = true;
-            startSilentAudio();
-            initVolumeMeter();
+        isUserListening = !isUserListening;
+        if (isUserListening) {
             startSTT();
-            startBtn.textContent = '👂 聞き取り中... (停止)';
+            startBtn.textContent = '👂 停止';
             startBtn.classList.add('listening-active');
         } else {
-            isUserListening = false;
-            stopSilentAudio();
             stopSTT();
-            startBtn.textContent = '🎤 聞き取り開始';
+            startBtn.textContent = '🎤 開始';
             startBtn.classList.remove('listening-active');
         }
     };
 
+    // 待って
+    const waitBtn = document.getElementById('waitBtn');
     waitBtn.onclick = () => {
         isMyTyping = !isMyTyping;
         waitBtn.classList.toggle('active', isMyTyping);
-        waitBtn.textContent = isMyTyping ? '🛑 入力中(解除)' : '🖐️ 待って';
         broadcastTypingState(isMyTyping);
     };
 
-    document.getElementById('speakBtn').onclick = speakAndLog;
-    
-    // ★ 復元: Enterキーでの送信と、テキストエリアの自動リサイズ
-    ttsInput.addEventListener('input', function() { 
-        this.style.height = 'auto'; 
-        this.style.height = this.scrollHeight + 'px'; 
-    });
-    ttsInput.addEventListener('keydown', (e) => {
-        if (e.isComposing || e.keyCode === 229) return;
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); 
-            speakAndLog();
-            setTimeout(() => ttsInput.style.height = 'auto', 10);
-        }
-    });
-    
+    // リセット
     document.getElementById('clearChatBtn').onclick = () => {
-        if(confirm("履歴を消去しますか？")) { chatMessages = []; renderAllMessages(); localStorage.removeItem('chatMessages'); }
+        if(confirm("消去しますか？")) { window.chatMessages = []; renderAllMessages(); localStorage.removeItem('chatMessages'); }
     };
-
-    // ★ 復元: エクスポート機能（コピー＆保存）
+    
+    // コピー・保存
     document.getElementById('copyChatBtn').onclick = () => {
-        if (!chatMessages.length) { alert("コピーする履歴がありません。"); return; }
-        navigator.clipboard.writeText(messagesToText()).then(() => alert("コピーしました！")).catch(() => alert("コピー失敗。"));
+        navigator.clipboard.writeText(messagesToText()).then(() => alert("コピー完了"));
     };
-    document.getElementById('downloadChatBtn').onclick = () => {
-        if (!chatMessages.length) { alert("保存する履歴がありません。"); return; }
-        const blob = new Blob([messagesToText()], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const date = new Date();
-        const filename = `会話記録_${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}_${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}.txt`;
-        const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    };
+
+    // ドロワー制御
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    const panel = document.querySelector('.sync-panel');
+    const overlay = document.getElementById('drawerOverlay');
+    if (menuBtn) {
+        menuBtn.onclick = () => { panel.classList.add('active'); overlay.classList.add('active'); panel.open = true; };
+        overlay.onclick = () => { panel.classList.remove('active'); overlay.classList.remove('active'); };
+    }
 }
 
-// --- ★ 復元: 選択時ポップアップ（辞書登録） ---
-function initSelectionPopup() {
-    const selectionPopup = document.getElementById('selectionPopup');
-    let tempSelectedText = "";
-
-    chatLog.addEventListener('mouseup', (e) => {
-        const selectedText = window.getSelection().toString().trim();
-        if (selectedText) {
-            tempSelectedText = selectedText;
-            selectionPopup.style.left = (e.pageX - 50) + 'px';
-            selectionPopup.style.top = (e.pageY - 45) + 'px';
-            selectionPopup.style.display = 'block';
-        } else {
-            selectionPopup.style.display = 'none';
-        }
-    });
-
-    document.addEventListener('mousedown', (e) => {
-        if (e.target !== selectionPopup) {
-            setTimeout(() => { if (!window.getSelection().toString().trim()) selectionPopup.style.display = 'none'; }, 10);
-        }
-    });
-
-    selectionPopup.addEventListener('mousedown', (e) => {
-        e.preventDefault(); 
-        if (tempSelectedText) {
-            const settingsUrl = 'settings.html?addWord=' + encodeURIComponent(tempSelectedText);
-            window.open(settingsUrl, '_blank');
-            selectionPopup.style.display = 'none';
-            window.getSelection().removeAllRanges(); 
-        }
-    });
-}
+// 他のファイルから呼ばれる指標表示
+window.handleRemoteTyping = function(d) {
+    const indicator = document.getElementById('typingIndicator');
+    if (d.isTyping) { indicator.textContent = `🖐️ ${d.name}さんが入力中...`; indicator.style.display = 'block'; }
+    else indicator.style.display = 'none';
+};
 
 // --- 音声認識 (STT) ---
 let recognition = null;
