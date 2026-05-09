@@ -42,7 +42,11 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 /* =========================================
    左側：通信パネル（全デバイス共通ドロワー）
 ========================================= */
-.mobile-menu-btn { display: inline-block; background-color: #6c757d; color: white; border: none; border-radius: 6px; padding: 6px 10px; margin-right: 15px; font-size: 0.9em; cursor: pointer; }
+.mobile-menu-btn { 
+    display: inline-block; background-color: #6c757d; color: white; border: none; border-radius: 6px; padding: 6px 10px; margin-right: 15px; font-size: 0.9em; cursor: pointer; 
+    /* ★追加: ドロワー(2000)よりも手前(2001)に浮かせる */
+    position: relative; z-index: 2001; 
+}
 .mobile-menu-btn:hover { background-color: #5a6268; }
 
 .drawer-overlay {
@@ -54,7 +58,9 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 
 .sync-panel {
     position: fixed; top: 0; left: -320px; width: 280px; height: 100dvh;
-    z-index: 2000; background: #e3f2fd; border-radius: 0; margin: 0; padding: 15px;
+    z-index: 2000; background: #e3f2fd; border-radius: 0; margin: 0; 
+    /* ★変更: 上部の余白を60pxにして、手前に浮いたボタンと文字が重ならないようにする */
+    padding: 60px 15px 15px 15px;
     transition: left 0.3s ease; box-shadow: 2px 0 8px rgba(0,0,0,0.2); box-sizing: border-box; overflow-y: auto;
 }
 .sync-panel.active { left: 0; }

@@ -271,15 +271,21 @@ function initUIEvents() {
             if (isActive) {
                 // 開いている状態なら閉じる
                 panel.classList.remove('active'); 
-                overlay.classList.remove('active'); 
+                overlay.classList.remove('active');
+                menuBtn.textContent = '☰ 通信設定'; // ★追加: テキストを元に戻す 
             } else {
                 // 閉じている状態なら開く
                 panel.classList.add('active'); 
                 overlay.classList.add('active'); 
                 panel.open = true; 
+                menuBtn.textContent = '✖ 閉じる'; // ★追加: 閉じるボタンに変化させる
             }
         };
-        overlay.onclick = () => { panel.classList.remove('active'); overlay.classList.remove('active'); };
+        overlay.onclick = () => { 
+            panel.classList.remove('active'); 
+            overlay.classList.remove('active');
+            menuBtn.textContent = '☰ 通信設定'; // ★追加 
+        };
     }
 }
 
