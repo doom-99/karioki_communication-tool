@@ -3,12 +3,29 @@ document.addEventListener('DOMContentLoaded', () => {
     initVoices();
     initDictionary();
     initDarkMode(); // ★これを追加
+    checkUrlParams(); // ★ 1. これを追加
 });
 
 function showToast() {
     const t = document.getElementById('saveToast');
     t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 2000);
+}
+
+// ★ 2. この関数をまるごと追加
+function checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const word = params.get('addWord');
+    if (word) {
+        const dictWrong = document.getElementById('dictWrong');
+        const dictCorrect = document.getElementById('dictCorrect');
+        if (dictWrong && dictCorrect) {
+            dictWrong.value = word;
+            dictCorrect.focus(); // 正しい言葉の入力欄にカーソルを合わせる
+        }
+        // URLからパラメータを消去（リロード時の再追加防止）
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 }
 
 function initFontSize() {

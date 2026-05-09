@@ -29,15 +29,20 @@ window.addEventListener('DOMContentLoaded', () => {
     ttsInput = document.getElementById('ttsInput');
 
     loadSettings();
-    initWebRTC(); // webrtc.jsで定義されている
     
-    const saved = localStorage.getItem('chatMessages');
+    // ★ 修正: 履歴の読み込みを先に完了させてから通信を開始する
+    const saved = localStorage.getItem('chatMessages');    
     if (saved) {
         try { window.chatMessages = JSON.parse(saved); renderAllMessages(); } catch(e) { window.chatMessages = []; }
     }
 
-    if (isAndroid) document.querySelector('.meter-container').style.display = 'none';
+    initWebRTC(); // 履歴の準備ができてから呼び出し
 
+    if (isAndroid) {
+        const meter = document.querySelector('.meter-container');
+        if(meter) meter.style.display = 'none';
+    }
+    
     initUIEvents();
     initSelectionPopup();
     

@@ -84,20 +84,20 @@ function setupConnection(conn) {
         if (!connections.includes(conn)) connections.push(conn);
         updateSyncStatusUI();
         
-        // ★修正: 接続直後に履歴をやり取りする
+        // ★ 修正: 接続が完全に安定するまで1秒待ってから履歴をやり取りする
         setTimeout(() => {
             if (isRoomHost) {
-                // ホストなら現在の履歴を送信
+                console.log("ホストとして履歴を送信します:", window.chatMessages.length, "件");
                 conn.send({ 
                     type: 'history', 
-                    messages: window.chatMessages, // window経由で参照
+                    messages: window.chatMessages, 
                     isHost: true 
                 });
             } else {
-                // ゲストならホストに履歴を要求
+                console.log("ゲストとして履歴を要求します...");
                 conn.send({ type: 'request_history' });
             }
-        }, 500);
+        }, 1000);
     });
 
     conn.on('data', (data) => {
