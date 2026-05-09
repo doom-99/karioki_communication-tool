@@ -10,6 +10,80 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
+    <div class="header">
+        <h1>コミュニケーション支援ツール</h1>
+        <div>
+            <a href="settings.html" target="_blank" class="settings-link-btn">⚙️ 設定・辞書</a>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <details class="sync-panel">
+            <summary class="sync-summary">
+                📡 通信・招待機能を開く 
+                <span id="syncStatusSummary">（オフライン）</span>
+            </summary>
+            <div class="sync-content">
+                <div class="my-id-area">
+                    <div class="label">あなたのID:</div>
+                    <div id="myPeerId" class="sync-id">取得中...</div>
+                    <div class="btn-group">
+                        <button id="copyUrlBtn" class="invite-btn" style="display:none;">🔗 URLコピー</button>
+                        <button id="showQrBtn" class="invite-btn" style="display:none;">📱 QR表示</button>
+                    </div>
+                </div>
+
+                <div class="connect-area">
+                    <input type="text" id="myNameInput" placeholder="あなたの名前">
+                    <input type="text" id="targetPeerId" placeholder="相手のIDを入力">
+                    <button id="connectBtn">接続する</button>
+                </div>
+                
+                <div id="syncStatus" class="status-text">現在オフラインです</div>
+                
+                <div id="qrContainer">
+                    <div class="qr-label">相手のカメラで読み取ってください</div>
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+        </details>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="header-left">
+                    <h2>💬 会話ノート</h2>
+                    <label class="env-toggle">
+                        <input type="checkbox" id="envSoundToggle"> 🔔 環境音AI
+                    </label>
+                </div>
+                <div class="header-right">
+                    <button id="copyChatBtn" class="action-btn">📋 コピー</button>
+                    <button id="downloadChatBtn" class="action-btn">💾 保存</button>
+                    <button id="clearChatBtn" class="clear-btn">🗑️ リセット</button>
+                </div>
+            </div>
+
+            <div id="envSoundCaption" class="caption-bar"></div>
+            <div id="typingIndicator" class="typing-indicator"></div>
+            <div id="selectionPopup">📖 辞書に登録</div>
+            
+            <div id="chatLog" class="chat-textarea" data-placeholder="ここに会話の履歴が表示されます..."></div>
+            <div id="sttInterim"></div>
+
+            <div class="meter-container">
+                <span class="meter-label">🎤 マイク入力:</span>
+                <div class="meter-bar-bg"><div id="volumeMeter" class="meter-bar-fill"></div></div>
+            </div>
+
+            <div class="input-row">
+                <button id="startBtn">🎤 聞き取り開始</button>
+                <button id="waitBtn" class="wait-btn">🖐️ 待って</button>
+                <textarea id="ttsInput" rows="1" placeholder="返答を入力 (Enterで送信)"></textarea>
+                <button id="speakBtn">🗣️ 送信</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/webrtc.js"></script>
     <script src="js/app.js"></script>
 </body>

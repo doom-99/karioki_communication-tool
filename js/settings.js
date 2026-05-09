@@ -1,119 +1,53 @@
-// --- 初期化処理 ---
 document.addEventListener('DOMContentLoaded', () => {
-    initVoiceList();
-    initSliders();
     initFontSize();
+    initVoices();
     initDictionary();
-    checkUrlParams(); // メイン画面からの単語追加リクエストを確認
 });
 
-// --- トースト通知の制御 ---
-let toastTimer = null;
-function showSaveToast() {
-    const toast = document.getElementById('saveToast');
-    toast.style.display = 'block';
-    toast.style.animation = 'none';
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        toast.style.animation = 'fadeOut 1s forwards';
-        setTimeout(() => { toast.style.display = 'none'; }, 1000);
-    }, 2000);
+function showToast() {
+    const t = document.getElementById('saveToast');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2000);
 }
 
-// --- 文字サイズ設定 ---
 function initFontSize() {
-    let currentSize = parseInt(localStorage.getItem('appFontSize')) || 16;
-    const display = document.getElementById('currentFontSizeDisplay');
-    display.textContent = currentSize;
-
-    document.getElementById('fontIncreaseBtn').onclick = () => updateFont(2);
-    document.getElementById('fontDecreaseBtn').onclick = () => updateFont(-2);
-
-    function updateFont(delta) {
-        currentSize = Math.min(32, Math.max(12, currentSize + delta));
-        localStorage.setItem('appFontSize', currentSize);
-        display.textContent = currentSize;
-        showSaveToast();
-    }
+    let size = parseInt(localStorage.getItem('appFontSize')) || 16;
+    const disp = document.getElementById('currentFontSizeDisplay');
+    disp.textContent = size;
+    document.getElementById('fontIncreaseBtn').onclick = () => { size += 2; save(); };
+    document.getElementById('fontDecreaseBtn').onclick = () => { size -= 2; save(); };
+    function save() { localStorage.setItem('appFontSize', size); disp.textContent = size; showToast(); }
 }
 
-// --- 音声設定 ---
-function initVoiceList() {
-    const synth = window.speechSynthesis;
-    const voiceSelect = document.getElementById('voiceSelect');
+function initVoices() {
+    const sel = document.getElementById('voiceSelect');
+    const rate = document.getElementById('rateSlider');
+    const pitch = document.getElementById('pitchSlider');
+
+    function load() {
+        const vs = window.speechSynthesis.getVoices().filter(v => v.lang.includes('ja'));
+        sel.innerHTML = vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+        sel.value = localStorage.getItem('ttsVoice') || "";
+    }
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
+    sel.onchange = () => { localStorage.setItem('ttsVoice', sel.value); showToast(); };
     
-    function populate() {
-        const voices = synth.getVoices().filter(v => v.lang.includes('ja'));
-        voiceSelect.innerHTML = voices.map((v, i) => 
-            `<option value="${v.name}">${v.name}</option>`
-        ).join('');
-        
-        const saved = localStorage.getItem('ttsVoice');
-        if (saved) voiceSelect.value = saved;
-    }
-
-    populate();
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = populate;
-    }
-
-    voiceSelect.onchange = () => {
-        localStorage.setItem('ttsVoice', voiceSelect.value);
-        showSaveToast();
-    };
+    rate.oninput = () => { localStorage.setItem('ttsRate', rate.value); document.getElementById('rateValue').textContent = rate.value; };
+    pitch.oninput = () => { localStorage.setItem('ttsPitch', pitch.value); document.getElementById('pitchValue').textContent = pitch.value; };
 }
 
-// --- 辞書機能のリファクタリング ---
 function initDictionary() {
     let dict = JSON.parse(localStorage.getItem('userDictionary')) || {};
     const list = document.getElementById('dictList');
-    const wrongInput = document.getElementById('dictWrong');
-    const correctInput = document.getElementById('dictCorrect');
-
     function render() {
-        const entries = Object.entries(dict);
-        list.innerHTML = entries.length ? entries.map(([w, c]) => `
-            <li class="dict-item">
-                <span><b>${w}</b> ➔ ${c}</span>
-                <button class="dict-delete-btn" data-word="${w}">削除</button>
-            </li>
-        `).join('') : '<li class="dict-item no-data">登録なし</li>';
-
-        // 削除ボタンのイベント登録
-        list.querySelectorAll('.dict-delete-btn').forEach(btn => {
-            btn.onclick = () => {
-                delete dict[btn.dataset.word];
-                save();
-            };
-        });
+        list.innerHTML = Object.entries(dict).map(([w, c]) => `<li>${w} ➔ ${c} <button onclick="delDict('${w}')">削除</button></li>`).join('');
     }
-
     document.getElementById('addDictBtn').onclick = () => {
-        const w = wrongInput.value.trim();
-        const c = correctInput.value.trim();
-        if (w && c) {
-            dict[w] = c;
-            wrongInput.value = ''; correctInput.value = '';
-            save();
-        }
+        const w = document.getElementById('dictWrong').value;
+        const c = document.getElementById('dictCorrect').value;
+        if(w && c) { dict[w] = c; localStorage.setItem('userDictionary', JSON.stringify(dict)); render(); showToast(); }
     };
-
-    function save() {
-        localStorage.setItem('userDictionary', JSON.stringify(dict));
-        render();
-        showSaveToast();
-    }
-
+    window.delDict = (w) => { delete dict[w]; localStorage.setItem('userDictionary', JSON.stringify(dict)); render(); showToast(); };
     render();
-}
-
-// メイン画面から ?addWord=... で送られてきた場合の処理
-function checkUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    const word = params.get('addWord');
-    if (word) {
-        document.getElementById('dictWrong').value = word;
-        document.getElementById('dictCorrect').focus();
-        window.history.replaceState({}, '', window.location.pathname);
-    }
 }

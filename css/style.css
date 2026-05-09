@@ -1,59 +1,54 @@
-/* --- 共通変数 --- */
 :root { --font-size: 14px; }
 
-/* --- 基本スタイル --- */
 body { font-family: sans-serif; background-color: #f4f7f6; margin: 0; padding: 6px; font-size: var(--font-size); color: #333; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; overflow: hidden; }
+
+/* ヘッダー */
 .header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 10px; }
 h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
-button { background-color: #0d6efd; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s; white-space: nowrap; }
-button:hover { background-color: #0b5ed7; }
+.settings-link-btn { background-color: #424649; color: white; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85em; font-weight: bold; }
 
-/* --- 通信パネル --- */
-.sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 230px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
-.sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; }
-.invite-btn { background-color: #6c757d; padding: 4px 8px; font-size: 0.85em; margin-left: 5px; color: white; border: none; border-radius: 4px; }
-#syncStatusSummary { display: block; font-size: 0.85em; color: #555; margin-top: 4px; padding-left: 28px; }
+/* レイアウト */
+.main-wrapper { display: flex; flex-direction: row; flex-grow: 1; gap: 15px; min-height: 0; width: 100%; }
 
-/* --- 会話ノートエリア --- */
+/* 通信パネル */
+.sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 230px; box-sizing: border-box; overflow-y: auto; }
+.sync-id { font-weight: bold; font-size: 1.1em; color: #1565c0; word-break: break-all; margin-bottom: 10px; }
+.invite-btn { background-color: #6c757d; color: white; border: none; padding: 6px 4px; border-radius: 4px; font-size: 0.85em; flex: 1; cursor: pointer; }
+.sync-content { margin-top: 15px; border-top: 1px dashed #bbdefb; padding-top: 15px; }
+.status-text { font-size: 0.8em; color: #555; margin-top: 15px; text-align: center; }
+
+/* チャットエリア */
 .chat-container { background: white; padding: 13px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
-.chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;}
-.chat-textarea { flex-grow: 1; width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 6px; background-color: #f0f4f8; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 5px; }
+.header-left { display: flex; align-items: center; gap: 15px; }
+.env-toggle { font-size: 0.85em; background: #fff3e0; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffcc80; color: #e65100; cursor: pointer; }
+.chat-textarea { flex-grow: 1; width: 100%; padding: 12px; background-color: #f0f4f8; border: 1px solid #ced4da; border-radius: 6px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
 
-/* --- 吹き出しデザイン --- */
+/* 吹き出し */
 .msg-row { display: flex; width: 100%; }
 .msg-row.right { justify-content: flex-end; }
 .msg-row.left { justify-content: flex-start; }
 .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
 .msg-name { font-size: 0.75em; color: #666; margin-bottom: 4px; font-weight: bold; }
-.msg-bubble { padding: 6px 10px; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+.msg-bubble { padding: 6px 10px; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .msg-row.right .msg-bubble { border-top-right-radius: 2px; }
 .msg-row.left .msg-bubble { border-top-left-radius: 2px; }
 
-/* --- ハイライト・インジケーター --- */
-.tts-highlight-word { background-color: #ffeb3b; color: #000; font-weight: bold; border-radius: 4px; padding: 2px 2px; border-bottom: 2px solid #fbc02d; }
+/* 入力エリア */
+.input-row { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; flex-wrap: wrap; }
+textarea#ttsInput { flex-grow: 1; resize: none; padding: 10px; border-radius: 6px; border: 1px solid #ced4da; font-size: 1em; }
 .listening-active { background-color: #e8f5e9 !important; color: #2e7d32 !important; border: 2px solid #4caf50 !important; animation: pulse-light 1.5s infinite; }
-@keyframes pulse-light { 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); } }
 
-/* --- レイアウト構造 --- */
-.main-wrapper { display: flex; flex-direction: row; flex-grow: 1; gap: 15px; min-height: 0; width: 100%; }
+/* 設定画面専用 */
+.settings-body { overflow: auto; padding: 20px; }
+.settings-container { background: white; padding: 20px; border-radius: 12px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.dict-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+#saveToast { display: none; background-color: #198754; color: white; padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center; }
 
+/* レスポンシブ */
 @media (max-width: 768px) {
-    .main-wrapper { flex-direction: column; gap: 10px; }
-    .sync-panel { width: 100%; height: auto; }
-    #syncStatusSummary { display: inline; margin-top: 0; padding-left: 8px; }
+    .main-wrapper { flex-direction: column; }
+    .sync-panel { width: 100%; }
 }
 
-/* --- 設定画面専用の追加スタイル --- */
-.settings-container { background: white; padding: 20px; border-radius: 12px; max-width: 600px; margin: 10px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-.info-box { background-color: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; border: 1px solid #bbdefb; }
-.section-title { font-size: 1.1rem; font-weight: bold; color: #0d6efd; margin: 25px 0 15px; border-left: 4px solid; padding-left: 10px; }
-.settings-grid { display: flex; flex-direction: column; gap: 20px; }
-.dict-input-row { display: flex; gap: 8px; margin-bottom: 15px; }
-.dict-input-row input { flex: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; }
-.dict-list { list-style: none; padding: 0; border: 1px solid #eee; border-radius: 8px; }
-.dict-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
-.dict-item.no-data { color: #999; justify-content: center; }
-.dict-delete-btn { background-color: #dc3545; font-size: 0.85em; }
-#saveToast { display: none; background-color: #198754; color: white; text-align: center; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
-.settings-footer { text-align: center; margin-top: 30px; }
-.close-btn { background-color: #6c757d; }
+@keyframes pulse-light { 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); } }

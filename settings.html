@@ -6,24 +6,23 @@
     <title>設定・辞書パネル</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="settings-body">
     <div class="settings-container">
         <h1>⚙️ 設定・辞書</h1>
-        
         <div id="saveToast">✅ 設定を保存しました</div>
 
         <div class="info-box">
-            <b>💡 使い方：</b> ここで変更した設定は，メインの会話画面にリアルタイムで反映されます．
+            <b>💡 使い方：</b> 変更はメイン画面にリアルタイムで反映されます．
         </div>
 
         <div class="section-title">文字と音声の調整</div>
         <div class="settings-grid">
             <div class="settings-item">
                 <label>🔠 アプリの文字サイズ</label>
-                <div>
+                <div class="font-controls">
                     <button class="font-btn" id="fontIncreaseBtn">＋ 大きくする</button>
                     <button class="font-btn" id="fontDecreaseBtn">－ 小さくする</button>
-                    <span class="font-display-text">現在のサイズ: <span id="currentFontSizeDisplay">16</span>px</span>
+                    <span class="font-status">現在のサイズ: <span id="currentFontSizeDisplay">16</span>px</span>
                 </div>
             </div>
 
@@ -55,7 +54,6 @@
             <button class="close-btn" onclick="window.close()">✖️ このタブを閉じる</button>
         </div>
     </div>
-
     <script src="js/settings.js"></script>
 </body>
 </html>
