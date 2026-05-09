@@ -42,3 +42,18 @@ button:hover { background-color: #0b5ed7; }
     .sync-panel { width: 100%; height: auto; }
     #syncStatusSummary { display: inline; margin-top: 0; padding-left: 8px; }
 }
+
+/* --- 設定画面専用の追加スタイル --- */
+.settings-container { background: white; padding: 20px; border-radius: 12px; max-width: 600px; margin: 10px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.info-box { background-color: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; border: 1px solid #bbdefb; }
+.section-title { font-size: 1.1rem; font-weight: bold; color: #0d6efd; margin: 25px 0 15px; border-left: 4px solid; padding-left: 10px; }
+.settings-grid { display: flex; flex-direction: column; gap: 20px; }
+.dict-input-row { display: flex; gap: 8px; margin-bottom: 15px; }
+.dict-input-row input { flex: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; }
+.dict-list { list-style: none; padding: 0; border: 1px solid #eee; border-radius: 8px; }
+.dict-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; }
+.dict-item.no-data { color: #999; justify-content: center; }
+.dict-delete-btn { background-color: #dc3545; font-size: 0.85em; }
+#saveToast { display: none; background-color: #198754; color: white; text-align: center; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
+.settings-footer { text-align: center; margin-top: 30px; }
+.close-btn { background-color: #6c757d; }
