@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFontSize();
     initVoices();
     initDictionary();
+    initDarkMode(); // ★これを追加
 });
 
 function showToast() {
@@ -50,4 +51,22 @@ function initDictionary() {
     };
     window.delDict = (w) => { delete dict[w]; localStorage.setItem('userDictionary', JSON.stringify(dict)); render(); showToast(); };
     render();
+}
+
+// --- ダークモード設定 ---
+function initDarkMode() {
+    const toggle = document.getElementById('darkModeToggle');
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    
+    // 現在の保存状態を反映
+    toggle.checked = isDark;
+    document.body.classList.toggle('dark-mode', isDark);
+
+    // スイッチ切り替え時の処理
+    toggle.addEventListener('change', (e) => {
+        const darkOn = e.target.checked;
+        localStorage.setItem('darkMode', darkOn);
+        document.body.classList.toggle('dark-mode', darkOn);
+        showToast();
+    });
 }

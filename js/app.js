@@ -50,6 +50,9 @@ function loadSettings() {
     savedTtsRate = parseFloat(localStorage.getItem('ttsRate')) || 1.0;
     savedTtsPitch = parseFloat(localStorage.getItem('ttsPitch')) || 1.0;
     document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+
+    // ★追加: ダークモードの同期
+    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
 }
 
 function getMyName() { 

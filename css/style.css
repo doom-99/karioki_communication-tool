@@ -172,3 +172,24 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
     .header { flex-direction: row; align-items: center; justify-content: space-between; }
     .chat-textarea { line-height: 1.35; }
 }
+
+/* =========================================
+   🌙 ダークモード用スタイル
+========================================= */
+body.dark-mode { background-color: #121212; color: #e0e0e0; }
+body.dark-mode h1, body.dark-mode h2 { color: #ffffff; }
+body.dark-mode .chat-container, body.dark-mode .settings-container, body.dark-mode #qrContainer, body.dark-mode #qrcode { background-color: #1e1e1e; box-shadow: none; border: 1px solid #333; }
+body.dark-mode .sync-panel { background-color: #1a1a1a; border-color: #333; }
+body.dark-mode .chat-textarea { background-color: #2d2d2d; border-color: #444; color: #e0e0e0; }
+body.dark-mode .sync-id { color: #64b5f6; }
+body.dark-mode .env-toggle { background: #3e2723; border-color: #5d4037; color: #ffb74d; }
+body.dark-mode input[type="text"], body.dark-mode select, body.dark-mode textarea#ttsInput { background-color: #333; color: #fff; border-color: #555; }
+body.dark-mode .info-box { background-color: #0d47a1; color: #e3f2fd; border-color: #1565c0; }
+body.dark-mode .dict-item { background: #1e1e1e; border-color: #333; }
+body.dark-mode .dict-item:nth-child(even) { background-color: #252525; }
+
+/* ダークモード時の吹き出しの文字色は、読みやすさのために濃い色を維持 */
+body.dark-mode .msg-text { color: #212529; }
+body.dark-mode .msg-name { color: #aaa; }
+/* 吹き出しの背景色が眩しすぎないように少し彩度を落とす */
+body.dark-mode .msg-bubble { filter: brightness(0.9) contrast(1.1); }
