@@ -1,4 +1,7 @@
 <!-- コードの改善 -->
+<!-- YAMNetの非推奨技術（ScriptProcessor）を
+ 最新の推奨技術（AudioWorklet）に置き換える
+ （audio-processor.jsというファイルを追加） -->
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -347,7 +350,7 @@
             if (savedMessages) {
                 try {
                     chatMessages = JSON.parse(savedMessages);
-                    renderMessages();
+                    renderAllMessages();
                 } catch(e) { chatMessages = []; }
             }
 
@@ -356,6 +359,16 @@
             peer = new Peer(); 
             const urlParams = new URLSearchParams(window.location.search);
             const inviteId = urlParams.get('room');
+
+            peer.on('error', (err) => {
+                let errorMsg = "通信エラーが発生しました。";
+                if (err.type === 'peer-unavailable') errorMsg = "入力されたIDの相手が見つかりません。すでに閉じているか、IDが間違っています。";
+                if (err.type === 'network') errorMsg = "ネットワーク接続が切れました。";
+                
+                alert(errorMsg);
+                document.getElementById('syncStatus').textContent = '⚠️ 通信エラー';
+                document.getElementById('targetPeerId').value = '';
+            });
             
             peer.on('open', (id) => {
                 document.getElementById('myPeerId').textContent = id;
@@ -447,7 +460,7 @@
                             if (m.name !== myCurrentName) return { name: m.name, text: m.text, type: 'remote' };
                             return m; 
                         });
-                        renderMessages();
+                        renderAllMessages();
                         saveMessages();
                     }
                 }
@@ -514,31 +527,47 @@
         }
 
         function addMessage(name, text, type) {
-            chatMessages.push({ name, text, type });
-            renderMessages();
+            const index = chatMessages.length;
+            const msgObj = { name, text, type };
+            chatMessages.push(msgObj);
+            
+            // 全体を再描画するのではなく、最新の1件だけをDOMの末尾に追加する
+            appendMessageToDOM(msgObj, index);
             saveMessages();
         }
 
-        function renderMessages() {
-            chatLog.innerHTML = chatMessages.map((m, i) => {
-                let s = MSG_STYLES[m.type] || MSG_STYLES.stt;
-                if (m.type === 'remote') s = getColorForName(m.name);
-                const alignClass = m.type === 'remote' ? 'left' : 'right';
-
-                // ★ 追加: 1つ前のメッセージと同じ送信者かどうかを判定
-                const isSameSender = i > 0 && chatMessages[i - 1].name === m.name && chatMessages[i - 1].type === m.type;
-                
-                // ★ 変更: 同じ送信者の場合は名前のHTMLを出力しないようにする
-                const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>`;
-
-                return `<div class="msg-row ${alignClass}">` +
-                       `<div class="msg-wrapper">` +
-                       nameHtml +
-                       `<div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border};">` +
-                       `<span class="msg-text">${escapeHTML(m.text)}</span>` +
-                       `</div></div></div>`;
-            }).join('');
+        // 初回読み込みや通信同期時など、全体を描画し直すための関数
+        function renderAllMessages() {
+            chatLog.innerHTML = '';
+            chatMessages.forEach((m, i) => appendMessageToDOM(m, i));
             chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // メッセージを1件だけ画面に追加する関数
+        function appendMessageToDOM(m, i) {
+            let s = MSG_STYLES[m.type] || MSG_STYLES.stt;
+            if (m.type === 'remote') s = getColorForName(m.name);
+            const alignClass = m.type === 'remote' ? 'left' : 'right';
+
+            // 1つ前のメッセージと同じ送信者かどうかを判定
+            const isSameSender = i > 0 && chatMessages[i - 1].name === m.name && chatMessages[i - 1].type === m.type;
+            const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>`;
+
+            const html = `<div class="msg-row ${alignClass}">` +
+                   `<div class="msg-wrapper">` +
+                   nameHtml +
+                   `<div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border};">` +
+                   `<span class="msg-text">${escapeHTML(m.text)}</span>` +
+                   `</div></div></div>`;
+            
+            // innerHTMLで丸ごと上書きせず、末尾に追記（insertAdjacentHTML）する
+            chatLog.insertAdjacentHTML('beforeend', html);
+            
+            // スクロール追従（一番下付近にいる場合のみ追従）
+            const isAtBottom = chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 50;
+            if (isAtBottom || i === chatMessages.length - 1) {
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
         }
 
         function saveMessages() { localStorage.setItem('chatMessages', JSON.stringify(chatMessages)); }
@@ -546,7 +575,7 @@
 
         document.getElementById('clearChatBtn').onclick = () => {
             if(confirm("会話の履歴をすべて消去しますか？")) {
-                chatMessages = []; renderMessages(); localStorage.removeItem('chatMessages');
+                chatMessages = []; renderAllMessages(); localStorage.removeItem('chatMessages');
             }
         };
 
@@ -633,7 +662,7 @@
             function speakNextChunk() {
                 if (currentIndex >= chunks.length) {
                     speakingQueueCount--;
-                    if (speakingQueueCount <= 0) { speakingQueueCount = 0; renderMessages(); } // ハイライト解除
+                    if (speakingQueueCount <= 0) { speakingQueueCount = 0; renderAllMessages(); } // ハイライト解除
                     return;
                 }
 
@@ -687,6 +716,9 @@
             }
 
             speakNextChunk();
+
+            // ★ 追加: 送信後にスマホのキーボードを閉じる（フォーカスを外す）
+            ttsInput.blur();
         }
         // ------------------------------------------------------------------------
 
@@ -758,59 +790,84 @@
             }
         });
 
+        let workletNode = null; // ★ 追加: Workletノード用の変数
+
         async function startEnvironmentalSoundDetection() {
             try {
                 if (!yamnetModel) yamnetModel = await tf.loadGraphModel('https://tfhub.dev/google/tfjs-model/yamnet/tfjs/1', {fromTFHub: true});
                 envStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+                
                 envAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                
+                // ★ 変更: 非推奨の ScriptProcessor を廃止し、AudioWorklet を読み込む
+                await envAudioContext.audioWorklet.addModule('audio-processor.js');
+                
                 const source = envAudioContext.createMediaStreamSource(envStream);
-                audioProcessor = envAudioContext.createScriptProcessor(2048, 1, 1);
-                source.connect(audioProcessor); audioProcessor.connect(envAudioContext.destination);
+                workletNode = new AudioWorkletNode(envAudioContext, 'audio-processor');
+                
+                // 接続
+                source.connect(workletNode);
+                workletNode.connect(envAudioContext.destination);
 
                 showAudioCaption("✅ 環境音の監視を開始しました");
                 setTimeout(() => { envSoundCaption.style.display = 'none'; }, 3500);
 
-                let audioBuffer = new Float32Array(16000); let bufferIndex = 0; let isPredicting = false;
+                let isPredicting = false;
 
-                audioProcessor.onaudioprocess = (e) => {
+                // ★ 変更: Worklet（裏側）から 8192 サンプル貯まったデータが送られてきた時の処理
+                workletNode.port.onmessage = (event) => {
                     if (!isEnvSoundActive || isPredicting) return;
-                    const inputData = e.inputBuffer.getChannelData(0);
-                    for (let i = 0; i < inputData.length; i++) if (bufferIndex < 8192) audioBuffer[bufferIndex++] = inputData[i];
+                    
+                    const audioData = event.data; // Workletから受け取った音声データ
+                    isPredicting = true;
+                    
+                    const paddedSamples = new Float32Array(15600);
+                    paddedSamples.set(audioData);
 
-                    if (bufferIndex >= 8192) {
-                        isPredicting = true;
-                        const paddedSamples = new Float32Array(15600);
-                        paddedSamples.set(audioBuffer.slice(0, 8192));
-                        bufferIndex = 0; 
-                        setTimeout(() => {
-                            tf.tidy(() => {
-                                const inputTensor = tf.tensor1d(paddedSamples);
-                                const results = yamnetModel.execute(inputTensor);
-                                const scores = Array.isArray(results) ? results[0] : results;
-                                const maxScoresOverTime = scores.max(0);
-                                const topClass = maxScoresOverTime.argMax().dataSync()[0];
-                                const topScore = maxScoresOverTime.max().dataSync()[0];
+                    // 推論処理（TensorFlow.js）は画面を止めないように少し遅らせて実行
+                    setTimeout(() => {
+                        tf.tidy(() => {
+                            const inputTensor = tf.tensor1d(paddedSamples);
+                            const results = yamnetModel.execute(inputTensor);
+                            const scores = Array.isArray(results) ? results[0] : results;
+                            const maxScoresOverTime = scores.max(0);
+                            const topClass = maxScoresOverTime.argMax().dataSync()[0];
+                            const topScore = maxScoresOverTime.max().dataSync()[0];
 
-                                const now = Date.now();
-                                if (now - lastCaptionTime > 3000) {
-                                    if (topScore > 0.05 && yamnetDict[topClass]) {
-                                        showAudioCaption(`🔔 ${yamnetDict[topClass]}`); lastCaptionTime = now;
-                                    } else if (topScore > 0.05 && [49, 50, 51, 56, 57, 58, 424, 425].includes(topClass)) {
-                                        showAudioCaption(`👏 突発音（拍手・叩く音など）`); lastCaptionTime = now;
-                                    }
+                            const now = Date.now();
+                            if (now - lastCaptionTime > 3000) {
+                                if (topScore > 0.05 && yamnetDict[topClass]) {
+                                    showAudioCaption(`🔔 ${yamnetDict[topClass]}`); lastCaptionTime = now;
+                                } else if (topScore > 0.05 && [49, 50, 51, 56, 57, 58, 424, 425].includes(topClass)) {
+                                    showAudioCaption(`👏 突発音（拍手・叩く音など）`); lastCaptionTime = now;
                                 }
-                            });
-                            isPredicting = false;
-                        }, 0);
-                    }
+                            }
+                        });
+                        isPredicting = false;
+                    }, 0);
                 };
-            } catch (err) { alert("マイクの権限がないか、エラーが発生しました。"); envSoundToggle.checked = false; }
+
+            } catch (err) { 
+                console.error(err);
+                alert("マイクの権限がないか、エラーが発生しました。"); 
+                envSoundToggle.checked = false; 
+            }
         }
 
         function stopEnvironmentalSoundDetection() {
-            if (audioProcessor) { audioProcessor.disconnect(); audioProcessor = null; }
-            if (envAudioContext) { envAudioContext.close(); envAudioContext = null; }
-            if (envStream) { envStream.getTracks().forEach(track => track.stop()); envStream = null; }
+            // ★ 変更: 停止処理も新しいノードに合わせて修正
+            if (workletNode) { 
+                workletNode.disconnect(); 
+                workletNode = null; 
+            }
+            if (envAudioContext) { 
+                envAudioContext.close(); 
+                envAudioContext = null; 
+            }
+            if (envStream) { 
+                envStream.getTracks().forEach(track => track.stop()); 
+                envStream = null; 
+            }
             envSoundCaption.style.display = 'none';
         }
 
