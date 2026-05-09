@@ -40,10 +40,27 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 .main-wrapper { display: flex; flex-direction: row; flex-grow: 1; gap: 15px; min-height: 0; width: 100%; }
 
 /* =========================================
-   左側：通信パネル
+   左側：通信パネル（全デバイス共通ドロワー）
 ========================================= */
-.sync-panel { background: #e3f2fd; padding: 10px 12px; border-radius: 8px; border: 1px solid #bbdefb; flex-shrink: 0; width: 230px; box-sizing: border-box; overflow-y: auto; max-height: 100%; }
+.mobile-menu-btn { display: inline-block; background-color: #6c757d; color: white; border: none; border-radius: 6px; padding: 6px 10px; margin-right: 15px; font-size: 0.9em; cursor: pointer; }
+.mobile-menu-btn:hover { background-color: #5a6268; }
+
+.drawer-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 1999; display: block;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.drawer-overlay.active { opacity: 1; pointer-events: auto; }
+
+.sync-panel {
+    position: fixed; top: 0; left: -320px; width: 280px; height: 100dvh;
+    z-index: 2000; background: #e3f2fd; border-radius: 0; margin: 0; padding: 15px;
+    transition: left 0.3s ease; box-shadow: 2px 0 8px rgba(0,0,0,0.2); box-sizing: border-box; overflow-y: auto;
+}
+.sync-panel.active { left: 0; }
+
 .sync-id { font-weight: bold; font-size: 1.1em; letter-spacing: 1px; color: #1565c0; user-select: all; cursor: pointer; margin-bottom: 10px; word-break: break-all; }
+
 .invite-btn { background-color: #6c757d; padding: 6px 4px; font-size: 0.85em; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1; margin: 0;}
 .invite-btn:hover { background-color: #5a6268; }
 .sync-summary { line-height: 1.4; cursor: pointer; font-weight: bold; }
@@ -84,7 +101,6 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 .msg-bubble { padding: 6px 10px; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
 .msg-row.right .msg-bubble { border-top-right-radius: 2px; }
 .msg-row.left .msg-bubble { border-top-left-radius: 2px; }
-/* 吹き出しのテキスト */
 .msg-text { 
     white-space: pre-wrap; 
     word-wrap: break-word; 
@@ -173,36 +189,9 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
 /* =========================================
    レスポンシブ (スマホ向け)
 ========================================= */
-/* --- ドロワー用要素（PCでは隠す） --- */
-.mobile-menu-btn { display: none; background-color: #6c757d; padding: 6px 10px; margin-right: 10px; font-size: 0.9em; }
-.drawer-overlay { display: none; }
-
-/* =========================================
-   レスポンシブ (スマホ向け)
-========================================= */
 @media (max-width: 768px) {
     .main-wrapper { flex-direction: column; gap: 10px; }
-    
-    /* ヘッダーの調整 */
-    .mobile-menu-btn { display: inline-block; }
     h1 { font-size: 1.1rem; flex-grow: 1; }
-    
-    /* ★変更: 通信パネルを左からスライドするドロワーに変更 */
-    .sync-panel { 
-        position: fixed; top: 0; left: -320px; width: 280px; height: 100dvh; 
-        z-index: 2000; background: #e3f2fd; border-radius: 0; margin: 0;
-        transition: left 0.3s ease; box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-    }
-    .sync-panel.active { left: 0; }
-    
-    /* 背景を暗くするオーバーレイ */
-    .drawer-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); z-index: 1999; display: block; 
-        opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-    }
-    .drawer-overlay.active { opacity: 1; pointer-events: auto; }
-    
     #syncStatusSummary { display: block; margin-top: 4px; padding-left: 28px; }
 }
 @media (max-width: 500px) {
