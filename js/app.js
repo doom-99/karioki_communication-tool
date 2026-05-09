@@ -265,7 +265,20 @@ function initUIEvents() {
     const panel = document.querySelector('.sync-panel');
     const overlay = document.getElementById('drawerOverlay');
     if (menuBtn) {
-        menuBtn.onclick = () => { panel.classList.add('active'); overlay.classList.add('active'); panel.open = true; };
+        // ★変更: ボタンを押した時の処理を「すでに開いていれば閉じ、閉じていれば開く」という条件分岐に変更
+        menuBtn.onclick = () => { 
+            const isActive = panel.classList.contains('active');
+            if (isActive) {
+                // 開いている状態なら閉じる
+                panel.classList.remove('active'); 
+                overlay.classList.remove('active'); 
+            } else {
+                // 閉じている状態なら開く
+                panel.classList.add('active'); 
+                overlay.classList.add('active'); 
+                panel.open = true; 
+            }
+        };
         overlay.onclick = () => { panel.classList.remove('active'); overlay.classList.remove('active'); };
     }
 }
