@@ -17,9 +17,6 @@ let envStream = null;
 let lastCaptionTime = 0;
 
 const isAndroid = /Android/i.test(navigator.userAgent);
-const chatLog = document.getElementById('chatLog');
-const sttInterim = document.getElementById('sttInterim');
-const ttsInput = document.getElementById('ttsInput');
 
 // --- 修正: 確実にHTMLを読み込んでから要素を取得するように変更 ---
 let chatLog, sttInterim, ttsInput;
@@ -127,6 +124,24 @@ if (typeof broadcastTypingState !== 'function') window.broadcastTypingState = ()
 let audioContextMeter; 
 let analyser;
 
+// --- Android ピコン音防止ハック ---
+let silentAudioCtx = null;
+function startSilentAudio() {
+    if (!isAndroid || silentAudioCtx) return;
+    try {
+        silentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = silentAudioCtx.createOscillator();
+        const gain = silentAudioCtx.createGain();
+        gain.gain.value = 0.0001;
+        oscillator.connect(gain);
+        gain.connect(silentAudioCtx.destination);
+        oscillator.start();
+    } catch(e) { console.log(e); }
+}
+function stopSilentAudio() {
+    if (silentAudioCtx) { silentAudioCtx.close(); silentAudioCtx = null; }
+}
+
 async function initVolumeMeter() {
     if (audioContextMeter || isAndroid) return;
     try {
@@ -193,10 +208,13 @@ function initUIEvents() {
     startBtn.onclick = () => {
         isUserListening = !isUserListening;
         if (isUserListening) {
+            startSilentAudio(); // ★ 復活
+            initVolumeMeter();  // ★ 復活
             startSTT();
             startBtn.textContent = '👂 停止';
             startBtn.classList.add('listening-active');
         } else {
+            stopSilentAudio();  // ★ 復活
             stopSTT();
             startBtn.textContent = '🎤 開始';
             startBtn.classList.remove('listening-active');
