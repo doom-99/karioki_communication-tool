@@ -11,23 +11,46 @@ function initWebRTC() {
         document.getElementById('myPeerId').textContent = id;
         setupInviteButtons(id);
         
-        // URLにroomが含まれていればゲストとして接続
+        // ★ 変更: ボタンをクリックするのではなく、直接接続関数を呼ぶ
         if (inviteId && inviteId !== id) {
             isRoomHost = false; 
             document.getElementById('targetPeerId').value = inviteId;
-            // 接続ボタンを自動クリック
-            setTimeout(() => document.getElementById('connectBtn').click(), 800);
+            console.log("招待IDを検知: 接続を開始します...", inviteId);
+            // PeerJSが準備完了してから少し待って接続
+            setTimeout(() => connectToPeer(inviteId), 1000);
         }
     });
 
-    peer.on('connection', (conn) => setupConnection(conn));
+    // ホスト側：接続を待機
+    peer.on('connection', (conn) => {
+        console.log("接続要求を受信しました");
+        setupConnection(conn);
+    });
 
     peer.on('error', (err) => {
+        console.error("PeerJS Error:", err.type, err);
         let errorMsg = "通信エラーが発生しました．";
-        if (err.type === 'peer-unavailable') errorMsg = "相手のIDが見つかりません．";
+        if (err.type === 'peer-unavailable') errorMsg = "相手がオフラインか、IDが間違っています．";
+        if (err.type === 'network') errorMsg = "ネットワークが不安定です．";
         alert(errorMsg);
         document.getElementById('syncStatus').textContent = '⚠️ エラー';
     });
+
+    // ★ 追加: 接続ボタン自体の処理をここに登録しておく
+    document.getElementById('connectBtn').onclick = () => {
+        const targetId = document.getElementById('targetPeerId').value.trim();
+        if (targetId) connectToPeer(targetId);
+    };
+}
+
+// ★ 追加: ゲスト側から接続を開始する関数
+function connectToPeer(targetId) {
+    console.log(targetId + " に接続を試みています...");
+    isRoomHost = false; // 自分から繋ぎに行く場合はゲスト
+    const conn = peer.connect(targetId, {
+        reliable: true
+    });
+    setupConnection(conn);
 }
 
 function setupInviteButtons(id) {
