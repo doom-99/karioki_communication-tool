@@ -24,7 +24,7 @@
         
         <h1>コミュニケーション支援ツール</h1>
         <div>
-            <a href="settings.html" target="_blank" class="settings-link-btn">⚙️ 設定・辞書</a>
+            <button id="settingsBtn" class="settings-link-btn">⚙️ 設定・辞書</button>
         </div>
     </div>
 
@@ -109,5 +109,54 @@
             });
         }
     </script>
+
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-content settings-container">
+            <div class="modal-header">
+                <h2>⚙️ 設定・辞書</h2>
+                <button id="closeSettingsBtn" class="close-icon-btn">✖</button>
+            </div>
+            <div id="saveToast">✅ 設定を保存しました</div>
+            
+            <div class="section-title">文字と音声の調整</div>
+            <div class="settings-grid">
+                <div class="settings-item">
+                    <label>🔠 アプリの文字サイズ</label>
+                    <div class="font-controls">
+                        <button class="font-btn" id="fontIncreaseBtn">＋ 大きくする</button>
+                        <button class="font-btn" id="fontDecreaseBtn">－ 小さくする</button>
+                        <span class="font-status">現在のサイズ: <span id="currentFontSizeDisplay">16</span>px</span>
+                    </div>
+                </div>
+                <div class="settings-item">
+                    <label>🌙 ダークモード (ナイトモード)</label>
+                    <label class="env-toggle" style="display: inline-flex;">
+                        <input type="checkbox" id="darkModeToggle"> 暗いテーマを使用する
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <label for="voiceSelect">👤 読み上げの声の種類</label>
+                    <select id="voiceSelect"></select>
+                </div>
+                <div class="settings-item">
+                    <label for="rateSlider">🏃 読み上げの速度: <span id="rateValue">1.0</span></label>
+                    <input type="range" id="rateSlider" min="0.5" max="2" value="1" step="0.1">
+                </div>
+                <div class="settings-item">
+                    <label for="pitchSlider">🎵 読み上げの高さ: <span id="pitchValue">1.0</span></label>
+                    <input type="range" id="pitchSlider" min="0" max="2" value="1" step="0.1">
+                </div>
+            </div>
+
+            <div class="section-title">📖 ユーザー辞書</div>
+            <div class="dict-input-row">
+                <input type="text" id="dictWrong" placeholder="誤認識される言葉">
+                <input type="text" id="dictCorrect" placeholder="正しい言葉">
+                <button id="addDictBtn">追加</button>
+            </div>
+            <ul id="dictList" class="dict-list"></ul>
+        </div>
+    </div>
+
 </body>
 </html>

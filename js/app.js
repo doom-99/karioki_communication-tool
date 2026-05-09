@@ -287,6 +287,19 @@ function initUIEvents() {
             menuBtn.textContent = '☰ 通信設定'; // ★追加 
         };
     }
+
+    // 設定モーダルの開閉
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
+    settingsBtn.onclick = () => {
+        settingsModal.classList.add('active');
+        initSettingsLogic(); // モーダルが開くときに中身を初期化
+    };
+    closeSettingsBtn.onclick = () => settingsModal.classList.remove('active');
+    // 外側クリックで閉じる
+    settingsModal.onclick = (e) => { if(e.target === settingsModal) settingsModal.classList.remove('active'); };
 }
 
 // --- 修正: 辞書登録ポップアップの完全復元 ---
@@ -324,8 +337,10 @@ function initSelectionPopup() {
     selectionPopup.addEventListener('mousedown', (e) => {
         e.preventDefault(); 
         if (tempSelectedText) {
-            const settingsUrl = 'settings.html?addWord=' + encodeURIComponent(tempSelectedText);
-            window.open(settingsUrl, '_blank');
+            settingsModal.classList.add('active');
+            initSettingsLogic();
+            document.getElementById('dictWrong').value = tempSelectedText;
+            document.getElementById('dictCorrect').focus();
             selectionPopup.style.display = 'none';
             window.getSelection().removeAllRanges(); 
         }
@@ -519,4 +534,81 @@ function handleRemoteTyping(d) {
     const indicator = document.getElementById('typingIndicator');
     if (d.isTyping) { indicator.textContent = `🖐️ ${d.name}さんが入力中...`; indicator.style.display = 'block'; }
     else indicator.style.display = 'none';
+}
+
+function initSettingsLogic() {
+    const disp = document.getElementById('currentFontSizeDisplay');
+    const toggle = document.getElementById('darkModeToggle');
+    const sel = document.getElementById('voiceSelect');
+    const rate = document.getElementById('rateSlider');
+    const pitch = document.getElementById('pitchSlider');
+
+    // 現在の値をUIに反映
+    disp.textContent = currentFontSize;
+    toggle.checked = localStorage.getItem('darkMode') === 'true';
+    rate.value = savedTtsRate;
+    pitch.value = savedTtsPitch;
+    document.getElementById('rateValue').textContent = savedTtsRate;
+    document.getElementById('pitchValue').textContent = savedTtsPitch;
+
+    // 音声リスト
+    function updateVoices() {
+        const vs = window.speechSynthesis.getVoices().filter(v => v.lang.includes('ja'));
+        sel.innerHTML = vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+        sel.value = localStorage.getItem('ttsVoice') || "";
+    }
+    updateVoices();
+    window.speechSynthesis.onvoiceschanged = updateVoices;
+
+    // イベント登録（変更即反映）
+    document.getElementById('fontIncreaseBtn').onclick = () => { currentFontSize += 2; saveSet(); };
+    document.getElementById('fontDecreaseBtn').onclick = () => { currentFontSize -= 2; saveSet(); };
+    toggle.onchange = () => { localStorage.setItem('darkMode', toggle.checked); loadSettings(); showSetToast(); };
+    sel.onchange = () => { localStorage.setItem('ttsVoice', sel.value); showSetToast(); };
+    rate.oninput = () => { 
+        savedTtsRate = rate.value; 
+        localStorage.setItem('ttsRate', rate.value); 
+        document.getElementById('rateValue').textContent = rate.value; 
+    };
+    pitch.oninput = () => { 
+        savedTtsPitch = pitch.value; 
+        localStorage.setItem('ttsPitch', pitch.value); 
+        document.getElementById('pitchValue').textContent = pitch.value; 
+    };
+
+    function saveSet() { localStorage.setItem('appFontSize', currentFontSize); loadSettings(); showSetToast(); disp.textContent = currentFontSize; }
+    renderDictInModal();
+}
+
+function renderDictInModal() {
+    const list = document.getElementById('dictList');
+    list.innerHTML = Object.entries(customDictionary).map(([w, c]) => `
+        <li class="dict-item">${w} ➔ ${c} <button class="dict-delete-btn" onclick="deleteDictInModal('${w}')">削除</button></li>
+    `).join('');
+}
+
+window.deleteDictInModal = (w) => {
+    delete customDictionary[w];
+    localStorage.setItem('userDictionary', JSON.stringify(customDictionary));
+    renderDictInModal();
+    showSetToast();
+};
+
+document.getElementById('addDictBtn').onclick = () => {
+    const w = document.getElementById('dictWrong').value.trim();
+    const c = document.getElementById('dictCorrect').value.trim();
+    if(w && c) {
+        customDictionary[w] = c;
+        localStorage.setItem('userDictionary', JSON.stringify(customDictionary));
+        document.getElementById('dictWrong').value = '';
+        document.getElementById('dictCorrect').value = '';
+        renderDictInModal();
+        showSetToast();
+    }
+};
+
+function showSetToast() {
+    const t = document.getElementById('saveToast');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2000);
 }

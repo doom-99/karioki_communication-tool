@@ -227,3 +227,20 @@ body.dark-mode .msg-text { color: #212529; }
 body.dark-mode .msg-name { color: #aaa; }
 /* 吹き出しの背景色が眩しすぎないように少し彩度を落とす */
 body.dark-mode .msg-bubble { filter: brightness(0.9) contrast(1.1); }
+
+/* モーダル基本設定 */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-content {
+    width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto;
+    position: relative; animation: modalIn 0.3s ease-out;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; margin-bottom: 20px; padding-bottom: 10px; }
+.close-icon-btn { background: none; color: #666; font-size: 1.5rem; padding: 0; }
+.close-icon-btn:hover { background: none; color: #000; }
+body.dark-mode .modal-header { border-color: #333; }
