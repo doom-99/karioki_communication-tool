@@ -146,7 +146,7 @@ function startSTT() {
     recognition.onresult = (e) => {
         let interim = ''; let final = '';
         for (let i = e.resultIndex; i < e.results.length; ++i) {
-            if (e.results[i].isFinal) final += e.results[i][0].transcript + '．\n\n';
+            if (e.results[i].isFinal) final += e.results[i][0].transcript + '．\n';
             else interim += e.results[i][0].transcript;
         }
         if (final.trim()) {
