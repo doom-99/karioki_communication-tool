@@ -42,7 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const meter = document.querySelector('.meter-container');
         if(meter) meter.style.display = 'none';
     }
-    
+
     initUIEvents();
     initSelectionPopup();
     
@@ -242,6 +242,22 @@ function initUIEvents() {
     // コピー・保存
     document.getElementById('copyChatBtn').onclick = () => {
         navigator.clipboard.writeText(messagesToText()).then(() => alert("コピー完了"));
+    };
+
+    // ★ 追加: ここから下の「保存」処理を追加してください
+    document.getElementById('downloadChatBtn').onclick = () => {
+        if (!window.chatMessages.length) { alert("保存する履歴がありません。"); return; }
+        const blob = new Blob([messagesToText()], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const date = new Date();
+        const filename = `会話記録_${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}_${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}.txt`;
+        const a = document.createElement('a'); 
+        a.href = url; 
+        a.download = filename; 
+        document.body.appendChild(a); 
+        a.click(); 
+        document.body.removeChild(a); 
+        URL.revokeObjectURL(url);
     };
 
     // ドロワー制御
