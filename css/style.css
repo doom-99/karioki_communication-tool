@@ -2,7 +2,13 @@
    共通変数・リセット
 ========================================= */
 :root { --font-size: 14px; }
-body { font-family: sans-serif; background-color: #f4f7f6; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; margin: 0; padding: 6px; font-size: var(--font-size); color: #333; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; overflow: hidden; }
+body { 
+    font-family: 'BIZ UDPGothic', sans-serif; /* ★UDフォントを優先適用 */ 
+    background-color: #f4f7f6; -webkit-text-size-adjust: 100%; 
+    text-size-adjust: 100%; margin: 0; padding: 6px; font-size: var(--font-size); 
+    color: #333; display: flex; flex-direction: column; height: 100dvh; 
+    box-sizing: border-box; overflow: hidden; 
+}
 
 h1 { font-size: 1.3rem; margin: 0; color: #2c3e50; }
 h2 { font-size: 1.1rem; margin: 0; }
@@ -84,13 +90,39 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 .meter-container { display: flex; align-items: center; gap: 10px; margin: 5px 0 10px 0; flex-shrink: 0; }
 .meter-label { font-size: 0.85em; font-weight: bold; color: #555; white-space: nowrap; }
 .meter-bar-bg { flex-grow: 1; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
-.meter-bar-fill { height: 100%; width: 0%; background: #4caf50; transition: width 0.05s linear, background-color 0.2s; }
+/* ★追加: 音量メーターをより滑らかに動かす */
+.meter-bar-fill { 
+    height: 100%; 
+    width: 0%; 
+    background: #4caf50; 
+    transition: width 0.1s ease-out; /* 反応を少し滑らかに */
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
 .input-row { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; flex-wrap: wrap; }
 .input-row input[type="text"], .input-row textarea { flex-grow: 1; margin-bottom: 0; min-width: 150px; }
 textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; line-height: 1.4; box-sizing: border-box; overflow-y: hidden; font-family: inherit; }
 
 /* 状態・アニメーション */
-.listening-active { background-color: #e8f5e9 !important; color: #2e7d32 !important; border: 2px solid #4caf50 !important; animation: pulse-light 1.5s infinite; }
+/* ★変更: 聞き取り中のボタンをより目立たせ，録音中であることを強調 */
+.listening-active { 
+    background-color: #ff5252 !important; /* 録音を想起させる赤系に変更 */
+    color: #ffffff !important; 
+    border: none !important;
+    position: relative;
+    overflow: hidden;
+}
+/* ★追加: ボタンの背景で「音の波」が動いているようなアニメーション */
+.listening-active::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: wave-slide 1.5s infinite;
+}
+@keyframes wave-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
 @keyframes pulse-light { 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); } }
 .tts-highlight-word { background-color: #ffeb3b; color: #000; font-weight: bold; border-radius: 4px; padding: 2px 2px; border-bottom: 2px solid #fbc02d; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 #sttInterim { min-height: 1.5em; color: #0d6efd; font-weight: bold; font-size: 0.9em; flex-shrink: 0; margin-top: 5px; }

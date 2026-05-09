@@ -115,6 +115,51 @@ function getColorForName(n) {
 if (typeof broadcastData !== 'function') window.broadcastData = () => {};
 if (typeof broadcastTypingState !== 'function') window.broadcastTypingState = () => {};
 
+// --- マイク音量メーター ---
+let audioContextMeter; 
+let analyser;
+
+async function initVolumeMeter() {
+    if (audioContextMeter || isAndroid) return;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContextMeter = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContextMeter.createAnalyser();
+        analyser.fftSize = 256;
+        const source = audioContextMeter.createMediaStreamSource(stream);
+        source.connect(analyser);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const volumeMeter = document.getElementById('volumeMeter');
+        
+        function updateMeter() {
+            if (!isUserListening) { 
+                volumeMeter.style.width = '0%'; 
+                requestAnimationFrame(updateMeter); 
+                return; 
+            }
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0; 
+            for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            
+            // ★微調整: 小さな音でもメーターが動き始めるように感度を調整
+            let average = sum / dataArray.length;
+            let percent = Math.min(100, (average / 40) * 100); 
+            
+            volumeMeter.style.width = percent + '%';
+            
+            // 色の変化をより直感的に
+            if (percent > 70) volumeMeter.style.background = '#f44336'; // 大きすぎ（赤）
+            else if (percent > 5) volumeMeter.style.background = '#4caf50'; // ちょうどいい（緑）
+            else volumeMeter.style.background = '#8bc34a'; // 小さい（黄緑）
+            
+            requestAnimationFrame(updateMeter);
+        }
+        updateMeter();
+    } catch (err) { 
+        console.log("マイク音量取得失敗", err); 
+    }
+}
+
 // --- UIイベント ---
 function initUIEvents() {
     // 送信
