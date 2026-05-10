@@ -44,6 +44,32 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
         if(meter) meter.style.display = 'none';
     }
 
+    // --- ソフトウェアキーボード対策 (Visual Viewport) ---
+    if (window.visualViewport) {
+        const adjustViewport = () => {
+            // キーボードを除いた「実際に表示されている画面の高さ」を取得し、HTMLとBodyに強制適用
+            const vpHeight = window.visualViewport.height;
+            document.documentElement.style.height = `${vpHeight}px`;
+            document.body.style.height = `${vpHeight}px`;
+            window.scrollTo(0, 0); // OS側の勝手なスクロールを防止
+
+            // 入力欄(ttsInput)にフォーカスが当たってキーボードが開いた場合、
+            // 会話ログが隠れないように一番下まで自動スクロールする
+            if (document.activeElement === ttsInput) {
+                setTimeout(() => {
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                }, 100); // キーボードのアニメーションに合わせるためのわずかな遅延
+            }
+        };
+
+        window.visualViewport.addEventListener('resize', adjustViewport);
+        // iOS特有の「キーボード出現時の謎のスクロール」を検知
+        window.visualViewport.addEventListener('scroll', adjustViewport);
+        
+        // 初回実行
+        adjustViewport();
+    }
+
     initUIEvents();
     initSelectionPopup();
 });
