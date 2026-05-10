@@ -211,15 +211,19 @@ function initUIEvents() {
     startBtn.onclick = () => {
         isUserListening = !isUserListening;
         if (isUserListening) {
-            startSilentAudio(); // ★ 復活
-            initVolumeMeter();  // ★ 復活
+            startSilentAudio();
+            initVolumeMeter(); 
             startSTT();
-            startBtn.textContent = '👂 停止';
+            // ★変更: textContentではなく、innerHTMLでspan構造ごと更新し、aria-labelも変える
+            startBtn.innerHTML = '<span class="icon">👂</span><span class="text">停止</span>';
+            startBtn.setAttribute('aria-label', '聞き取り停止');
             startBtn.classList.add('listening-active');
         } else {
-            stopSilentAudio();  // ★ 復活
+            stopSilentAudio(); 
             stopSTT();
-            startBtn.textContent = '🎤 開始';
+            // ★変更: 同様に元に戻す
+            startBtn.innerHTML = '<span class="icon">🎤</span><span class="text">開始</span>';
+            startBtn.setAttribute('aria-label', '聞き取り開始');
             startBtn.classList.remove('listening-active');
         }
     };

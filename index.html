@@ -91,10 +91,16 @@
             </div>
 
             <div class="input-row">
-                <button id="startBtn">🎤 聞き取り開始</button>
-                <button id="waitBtn" class="wait-btn">🖐️ 待って</button>
+                <button id="startBtn" class="action-icon-btn" aria-label="聞き取り開始">
+                    <span class="icon">🎤</span><span class="text">聞き取り</span>
+                </button>
+                <button id="waitBtn" class="wait-btn action-icon-btn" aria-label="待って">
+                    <span class="icon">🖐️</span><span class="text">待って</span>
+                </button>
                 <textarea id="ttsInput" rows="1" placeholder="返答を入力 (Enterで送信)"></textarea>
-                <button id="speakBtn">🗣️ 送信</button>
+                <button id="speakBtn" class="action-icon-btn" aria-label="送信">
+                    <span class="icon">🗣️</span><span class="text">送信</span>
+                </button>
             </div>
         </div>
     </div>

@@ -200,11 +200,35 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
     h1 { font-size: 1.1rem; flex-grow: 1; }
     #syncStatusSummary { display: block; margin-top: 4px; padding-left: 28px; }
 }
+
+/* =========================================
+   アイコンボタン共通スタイル（style.cssの適当な場所、または末尾の直前に追加）
+========================================= */
+.action-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    min-height: 44px; /* ★Apple推奨の最小タップ領域 */
+    min-width: 44px; padding: 8px 12px; box-sizing: border-box; transition: all 0.2s ease;
+}
+.action-icon-btn .icon { font-size: 1.2em; }
+
+/* =========================================
+   レスポンシブ (スマホ向け 幅500px以下)
+========================================= */
 @media (max-width: 500px) {
     h1 { font-size: 1.1rem; }
     button { padding: 10px 12px; }
     .header { flex-direction: row; align-items: center; justify-content: space-between; }
     .chat-textarea { line-height: 1.35; }
+    
+    /* ★ここから下を追加：スマホ時のみアイコン化して押しやすくする */
+    .input-row { flex-wrap: nowrap; gap: 6px; }
+    .action-icon-btn {
+        padding: 0; width: 48px; height: 48px; flex-shrink: 0;
+        border-radius: 50%; /* 丸ボタンにして指の腹で押しやすくする */
+    }
+    .action-icon-btn .text { display: none; /* 文字を隠す */ }
+    .action-icon-btn .icon { font-size: 1.5em; margin: 0; }
+    #ttsInput { min-width: 0; } /* テキストエリアが潰れないようにする */
 }
 
 /* =========================================
