@@ -101,22 +101,28 @@ function setupConnection(conn) {
     });
 
     conn.on('data', (data) => {
+        const myCurrentName = getMyName() === '名無し' ? 'あなた' : getMyName();
+
         if (data.type === 'text') {
-            // app.jsのaddMessageを呼び出す
-            if (window.addMessage) {
-                window.addMessage(data.name || '相手', data.text.trim(), 'remote');
+            // 受信したメッセージは「remote」として扱う
+            addMessage(data.name || '相手', data.text.trim(), 'remote');
+        }
+        else if (data.type === 'history') {
+            if (data.isHost) {
+                // ホストからの履歴同期時：自分の名前以外のメッセージはすべて remote に書き換える
+                chatMessages = (data.messages || []).map(m => {
+                    if (m.name !== myCurrentName) {
+                        return { name: m.name, text: m.text, type: 'remote' };
+                    }
+                    return m; 
+                });
+                renderAllMessages();
+                saveMessages();
             }
-            // 他の接続先にも転送
-            connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
-        } 
+        }
         else if (data.type === 'request_history') {
             if (isRoomHost) {
                 conn.send({ type: 'history', messages: window.chatMessages, isHost: true });
-            }
-        } 
-        else if (data.type === 'history') {
-            if (data.isHost && window.syncHistory) {
-                window.syncHistory(data.messages);
             }
         } 
         else if (data.type === 'typing') {

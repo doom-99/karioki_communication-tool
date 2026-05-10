@@ -18,6 +18,30 @@ let lastCaptionTime = 0;
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
+// --- メッセージのスタイル定義（復刻） ---
+const MSG_STYLES = {
+    tts:    { bg: '#e8f5e9', border: '#66bb6a', nameColor: '#2e7d32' }, 
+    stt:    { bg: '#e3f2fd', border: '#42a5f5', nameColor: '#1565c0' }, 
+    remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }  
+};
+
+// 参加者ごとのカラーパレット
+const REMOTE_PALETTES = [
+    { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }, 
+    { bg: '#fce4ec', border: '#f06292', nameColor: '#c2185b' },
+    { bg: '#e3f2fd', border: '#64b5f6', nameColor: '#1565c0' }, 
+    { bg: '#f3e5f5', border: '#ba68c8', nameColor: '#7b1fa2' },
+    { bg: '#e0f7fa', border: '#4dd0e1', nameColor: '#006064' }, 
+    { bg: '#fffde7', border: '#dce775', nameColor: '#827717' }
+];
+
+// 名前から一意の色を決定する関数
+function getColorForName(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return REMOTE_PALETTES[Math.abs(hash) % REMOTE_PALETTES.length];
+}
+
 // --- 修正: 確実にHTMLを読み込んでから要素を取得するように変更 ---
 let chatLog, sttInterim, ttsInput;
 
@@ -117,18 +141,31 @@ function renderAllMessages() {
 }
 
 function appendMessageToDOM(m, i) {
-    const MSG_STYLES = {
-        tts: { bg: '#e8f5e9', border: '#66bb6a', nameColor: '#2e7d32' },
-        stt: { bg: '#e3f2fd', border: '#42a5f5', nameColor: '#1565c0' },
-        remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }
-    };
+    // 基本スタイルの決定
     let s = MSG_STYLES[m.type] || MSG_STYLES.stt;
-    if (m.type === 'remote') s = getColorForName(m.name);
+    
+    // リモート（相手）の場合は名前から色を計算し、左側に寄せる
+    if (m.type === 'remote') {
+        s = getColorForName(m.name);
+    }
     const alignClass = m.type === 'remote' ? 'left' : 'right';
-    const isSameSender = i > 0 && window.chatMessages[i - 1].name === m.name && window.chatMessages[i - 1].type === m.type;
-    const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor};">${escapeHTML(m.name)}</span>`;
-    const html = `<div class="msg-row ${alignClass}"><div class="msg-wrapper">${nameHtml}<div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border};"><span class="msg-text">${escapeHTML(m.text)}</span></div></div></div>`;
+
+    // 1つ前と同じ送信者なら名前を省略するロジック（ver18準拠）
+    const isSameSender = i > 0 && chatMessages[i - 1].name === m.name && chatMessages[i - 1].type === m.type;
+    const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor}; font-weight:bold; font-size:0.75em; margin-bottom:4px; display:block;">${escapeHTML(m.name)}</span>`;
+
+    const html = `
+        <div class="msg-row ${alignClass}" style="display:flex; width:100%; justify-content:${alignClass === 'left' ? 'flex-start' : 'flex-end'}; margin-bottom:8px;">
+            <div class="msg-wrapper" style="display:flex; flex-direction:column; max-width:80%; align-items:${alignClass === 'left' ? 'flex-start' : 'flex-end'};">
+                ${nameHtml}
+                <div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border}; padding:6px 10px; border-radius:12px; border-top-${alignClass}-radius:2px;">
+                    <span class="msg-text" style="white-space:pre-wrap; word-wrap:break-word;">${escapeHTML(m.text)}</span>
+                </div>
+            </div>
+        </div>`;
+    
     chatLog.insertAdjacentHTML('beforeend', html);
+
     chatLog.scrollTop = chatLog.scrollHeight;
 }
 
