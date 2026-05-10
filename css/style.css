@@ -263,6 +263,7 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
     min-height: 44px; /* ★Apple推奨の最小タップ領域 */
     min-width: 44px; 
     padding: 4px 8px; box-sizing: border-box; transition: all 0.2s ease;
+    font-size: 1.5em;
 }
 .action-icon-btn .icon { font-size: 1.2em; }
 
