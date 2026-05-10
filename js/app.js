@@ -126,12 +126,25 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
         // 名前を保存して画面を隠す
         await localforage.setItem('myDisplayName', inputName);
         myNameInput.value = inputName;
-        nameOverlay.style.fadeOut = "0.3s";
-        setTimeout(() => nameOverlay.style.display = 'none', 300);
+        
+        // ★修正: fadeOutという架空のプロパティではなく、opacityとtransitionで滑らかに消す
+        nameOverlay.style.transition = "opacity 0.3s ease";
+        nameOverlay.style.opacity = "0";
+        setTimeout(() => {
+            nameOverlay.style.display = 'none';
+        }, 300);
     };
 
     // Enterキーでも決定できるように
     initialInput.onkeydown = (e) => { if(e.key === 'Enter') entryBtn.click(); };
+
+    // ★追加: 通信パネル（左ドロワー）で名前を変更した時にも、新しい名前を保存する
+    myNameInput.addEventListener('input', async () => {
+        const newName = myNameInput.value.trim();
+        if (newName) {
+            await localforage.setItem('myDisplayName', newName);
+        }
+    });
 });
 
 // ★ 修正: localforage は非同期なので async 関数にします
