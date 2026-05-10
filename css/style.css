@@ -32,10 +32,10 @@ button {
 button:hover { background-color: #0b5ed7; }
 input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; }
 
-/* 特殊ボタン色 */
-.action-btn { background-color: #198754; padding: 4px 8px; font-size: 1em; }
+/* 特殊ボタン（コピー，保存，リセット）色 */
+.action-btn { background-color: #198754; padding: 3px 8px; font-size: 1em; }
 .action-btn:hover { background-color: #157347; }
-.clear-btn { background-color: #6c757d; padding: 4px 8px; font-size: 1em; }
+.clear-btn { background-color: #6c757d; padding: 3px 8px; font-size: 1em; }
 .clear-btn:hover { background-color: #5a6268; }
 .stop-btn { background-color: #dc3545; }
 .stop-btn:hover { background-color: #c82333; }
