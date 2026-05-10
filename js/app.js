@@ -306,6 +306,29 @@ function initUIEvents() {
     closeSettingsBtn.onclick = () => settingsModal.classList.remove('active');
     // 外側クリックで閉じる
     settingsModal.onclick = (e) => { if(e.target === settingsModal) settingsModal.classList.remove('active'); };
+
+    // --- スマートヘッダー（スクロール連動） ---
+    let lastScrollTop = 0;
+    const topHeader = document.querySelector('.header');
+
+    chatLog.addEventListener('scroll', () => {
+        const currentScroll = chatLog.scrollTop;
+        
+        // 新規メッセージ受信時などの「自動スクロール」で誤ってヘッダーが隠れないように、
+        // 一番下にいる時（isAtBottom）は判定から除外する
+        const isAtBottom = chatLog.scrollHeight - currentScroll - chatLog.clientHeight < 20;
+
+        // 下へスクロール（最新の会話に向かって指を動かしている時）
+        if (currentScroll > lastScrollTop && currentScroll > 50 && !isAtBottom) {
+            topHeader.classList.add('header-hidden');
+        } 
+        // 上へスクロール（少しでも戻ろうと指を動かした時）
+        else if (currentScroll < lastScrollTop) {
+            topHeader.classList.remove('header-hidden');
+        }
+        
+        lastScrollTop = currentScroll;
+    });
 }
 
 // --- 修正: 辞書登録ポップアップの完全復元 ---

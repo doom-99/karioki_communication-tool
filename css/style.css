@@ -278,3 +278,24 @@ body.dark-mode .msg-bubble { filter: brightness(0.9) contrast(1.1); }
 .close-icon-btn { background: none; color: #666; font-size: 1.5rem; padding: 0; }
 .close-icon-btn:hover { background: none; color: #000; }
 body.dark-mode .modal-header { border-color: #333; }
+
+/* =========================================
+   スマートヘッダー（スクロール連動）
+========================================= */
+.header {
+    /* 高さや余白が滑らかに変化するようにトランジションを設定 */
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+    max-height: 100px; /* 通常時の十分な高さ */
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* ヘッダーを隠す時のクラス */
+.header.header-hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    pointer-events: none; /* 隠れている時はクリック判定も消す */
+}
