@@ -22,21 +22,22 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 let chatLog, sttInterim, ttsInput;
 
 // --- 初期化 ---
-window.addEventListener('DOMContentLoaded', () => {
-    // ここで初めて要素を探しに行く（HTML読み込み完了後）
+window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
     chatLog = document.getElementById('chatLog');
     sttInterim = document.getElementById('sttInterim');
     ttsInput = document.getElementById('ttsInput');
 
-    loadSettings();
+    // ★ 修正: 設定の読み込みが終わるのを待つ
+    await loadSettings();
     
-    // ★ 修正: 履歴の読み込みを先に完了させてから通信を開始する
-    const saved = localStorage.getItem('chatMessages');    
+    // ★ 修正: localforage から履歴を取得 (JSON.parseは不要になります)
+    const saved = await localforage.getItem('chatMessages');    
     if (saved) {
-        try { window.chatMessages = JSON.parse(saved); renderAllMessages(); } catch(e) { window.chatMessages = []; }
+        window.chatMessages = saved; 
+        renderAllMessages(); 
     }
 
-    initWebRTC(); // 履歴の準備ができてから呼び出し
+    initWebRTC();
 
     if (isAndroid) {
         const meter = document.querySelector('.meter-container');
@@ -45,25 +46,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
     initUIEvents();
     initSelectionPopup();
+});
+
+// ★ 修正: localforage は非同期なので async 関数にします
+async function loadSettings() {
+    customDictionary = (await localforage.getItem('userDictionary')) || {};
+    currentFontSize = parseInt(await localforage.getItem('appFontSize')) || 16;
+    savedTtsRate = parseFloat(await localforage.getItem('ttsRate')) || 1.0;
+    savedTtsPitch = parseFloat(await localforage.getItem('ttsPitch')) || 1.0;
     
-    // ダークモードの初期反映
-    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
-});
-
-// 設定変更の監視
-window.addEventListener('storage', (e) => {
-    if (['userDictionary', 'appFontSize', 'ttsRate', 'ttsPitch', 'ttsVoice', 'darkMode'].includes(e.key)) {
-        loadSettings();
-    }
-});
-
-function loadSettings() {
-    customDictionary = JSON.parse(localStorage.getItem('userDictionary')) || {};
-    currentFontSize = parseInt(localStorage.getItem('appFontSize')) || 16;
-    savedTtsRate = parseFloat(localStorage.getItem('ttsRate')) || 1.0;
-    savedTtsPitch = parseFloat(localStorage.getItem('ttsPitch')) || 1.0;
     document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
-    document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
+    
+    const isDark = await localforage.getItem('darkMode');
+    document.body.classList.toggle('dark-mode', isDark === true);
 }
 
 // 他のファイルから呼べるようにwindowに公開
@@ -111,7 +106,10 @@ function appendMessageToDOM(m, i) {
     chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function saveMessages() { localStorage.setItem('chatMessages', JSON.stringify(window.chatMessages)); }
+// ★ 修正: stringify不要。そのまま保存します
+function saveMessages() { 
+    localforage.setItem('chatMessages', window.chatMessages); 
+}
 function messagesToText() { return window.chatMessages.map(m => `${m.name}： ${m.text}`).join('\n'); }
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])); }
 function getColorForName(n) {
@@ -236,7 +234,11 @@ function initUIEvents() {
 
     // リセット
     document.getElementById('clearChatBtn').onclick = () => {
-        if(confirm("消去しますか？")) { window.chatMessages = []; renderAllMessages(); localStorage.removeItem('chatMessages'); }
+        if(confirm("消去しますか？")) { 
+            window.chatMessages = []; 
+            renderAllMessages(); 
+            localforage.removeItem('chatMessages'); // ★修正
+        }
     };
     
     // コピー・保存
@@ -563,20 +565,21 @@ function initSettingsLogic() {
     // イベント登録（変更即反映）
     document.getElementById('fontIncreaseBtn').onclick = () => { currentFontSize += 2; saveSet(); };
     document.getElementById('fontDecreaseBtn').onclick = () => { currentFontSize -= 2; saveSet(); };
-    toggle.onchange = () => { localStorage.setItem('darkMode', toggle.checked); loadSettings(); showSetToast(); };
-    sel.onchange = () => { localStorage.setItem('ttsVoice', sel.value); showSetToast(); };
+    // (initSettingsLogic 内のイベント登録部分)
+    toggle.onchange = () => { localforage.setItem('darkMode', toggle.checked); loadSettings(); showSetToast(); };
+    sel.onchange = () => { localforage.setItem('ttsVoice', sel.value); showSetToast(); };
     rate.oninput = () => { 
         savedTtsRate = rate.value; 
-        localStorage.setItem('ttsRate', rate.value); 
+        localforage.setItem('ttsRate', rate.value); 
         document.getElementById('rateValue').textContent = rate.value; 
     };
     pitch.oninput = () => { 
         savedTtsPitch = pitch.value; 
-        localStorage.setItem('ttsPitch', pitch.value); 
+        localforage.setItem('ttsPitch', pitch.value); 
         document.getElementById('pitchValue').textContent = pitch.value; 
     };
 
-    function saveSet() { localStorage.setItem('appFontSize', currentFontSize); loadSettings(); showSetToast(); disp.textContent = currentFontSize; }
+    function saveSet() { localforage.setItem('appFontSize', currentFontSize); loadSettings(); showSetToast(); disp.textContent = currentFontSize; }
     renderDictInModal();
 }
 
@@ -589,7 +592,8 @@ function renderDictInModal() {
 
 window.deleteDictInModal = (w) => {
     delete customDictionary[w];
-    localStorage.setItem('userDictionary', JSON.stringify(customDictionary));
+    // ★ 修正
+    localforage.setItem('userDictionary', customDictionary);
     renderDictInModal();
     showSetToast();
 };
@@ -599,7 +603,8 @@ document.getElementById('addDictBtn').onclick = () => {
     const c = document.getElementById('dictCorrect').value.trim();
     if(w && c) {
         customDictionary[w] = c;
-        localStorage.setItem('userDictionary', JSON.stringify(customDictionary));
+        // ★ 修正
+        localforage.setItem('userDictionary', customDictionary);
         document.getElementById('dictWrong').value = '';
         document.getElementById('dictCorrect').value = '';
         renderDictInModal();
