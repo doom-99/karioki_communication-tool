@@ -203,7 +203,7 @@ function appendMessageToDOM(m, i) {
     const nameHtml = isSameSender ? '' : `<span class="msg-name" style="color:${s.nameColor}; font-weight:bold; font-size:0.75em; margin-bottom:4px; display:block;">${escapeHTML(m.name)}</span>`;
 
     const html = `
-        <div class="msg-row ${alignClass}" style="display:flex; width:100%; justify-content:${alignClass === 'left' ? 'flex-start' : 'flex-end'}; margin-bottom:8px;">
+        <div class="msg-row ${alignClass}" style="display:flex; width:100%; justify-content:${alignClass === 'left' ? 'flex-start' : 'flex-end'};">
             <div class="msg-wrapper" style="display:flex; flex-direction:column; max-width:80%; align-items:${alignClass === 'left' ? 'flex-start' : 'flex-end'};">
                 ${nameHtml}
                 <div class="msg-bubble" data-index="${i}" style="background:${s.bg}; border: 1px solid ${s.border}; padding:6px 10px; border-radius:12px; border-top-${alignClass}-radius:2px;">
