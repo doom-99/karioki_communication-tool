@@ -300,20 +300,59 @@ body.dark-mode .modal-header { border-color: #333; }
     pointer-events: none; /* 隠れている時はクリック判定も消す */
 }
 
-/* 名前入力オーバーレイ */
+/* =========================================
+   名前入力オーバーレイ (アクセシビリティ改善版)
+========================================= */
 .name-entry-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #f4f7f6; z-index: 9999; /* 全てのものより手前に表示 */
+    background: #f4f7f6; z-index: 9999;
     display: flex; align-items: center; justify-content: center;
 }
 .name-entry-card {
     background: white; padding: 30px; border-radius: 16px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
     width: 90%; max-width: 400px;
+    color: #212529; /* ★ ベースの文字色を最も濃い黒（ほぼ漆黒）に固定 */
 }
-.name-entry-card h2 { margin-top: 0; color: #0d6efd; }
+.name-entry-card h2 { 
+    margin-top: 0; 
+    color: #0a58ca; /* ★ 青色をさらに濃く（標準の#0d6efdより一段暗い色）して視認性向上 */
+    font-weight: 900; /* 最も太い文字に */
+    letter-spacing: 1px;
+}
+.name-entry-card p {
+    font-size: 1.15rem; /* 少し大きく */
+    font-weight: bold; /* はっきりと太字に */
+    color: #212529;
+    line-height: 1.6; /* 行間を広げて圧迫感を減らす */
+    margin: 15px 0;
+}
+.name-entry-card small {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.95rem;
+    font-weight: bold; /* サブテキストも太字にする */
+    color: #495057; /* 薄すぎない，しっかり読めるグレー */
+}
 .name-entry-card input {
-    width: 100%; padding: 12px; margin: 20px 0;
-    border: 2px solid #e9ecef; border-radius: 8px; font-size: 1.1rem;
+    width: 100%; padding: 14px; margin: 20px 0; box-sizing: border-box;
+    border: 2px solid #adb5bd; /* 枠線を少し濃くして入力欄を分かりやすく */
+    border-radius: 8px; font-size: 1.1rem;
+    font-weight: bold;
+    color: #212529;
+    background-color: #f8f9fa;
 }
-.name-entry-card button { width: 100%; padding: 12px; font-size: 1.1rem; }
+/* ★ 入力欄の薄いヒント文字（プレースホルダー）も濃く調整 */
+.name-entry-card input::placeholder {
+    color: #6c757d;
+    font-weight: normal;
+}
+.name-entry-card input:focus {
+    outline: none;
+    border-color: #0a58ca;
+    background-color: #ffffff;
+}
+.name-entry-card button { 
+    width: 100%; padding: 14px; font-size: 1.15rem; font-weight: bold;
+    letter-spacing: 1px;
+}
