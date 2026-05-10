@@ -58,6 +58,19 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
     sttInterim = document.getElementById('sttInterim');
     ttsInput = document.getElementById('ttsInput');
 
+    // ★ 変更：名前入力に関連する要素を先に取得
+    const nameOverlay = document.getElementById('nameEntryOverlay');
+    const initialInput = document.getElementById('initialNameInput');
+    const entryBtn = document.getElementById('entryBtn');
+    const myNameInput = document.getElementById('myNameInput');
+
+    // ★ 推奨：Peer通信や設定読み込みよりも前に、まず名前を確定させる
+    const savedName = await localforage.getItem('myDisplayName');
+    if (savedName && savedName !== '名無し') {
+        nameOverlay.style.display = 'none'; 
+        myNameInput.value = savedName; // ★ 修正：保存されていた名前を画面の入力欄に反映
+    }
+
     // ★ 修正: 設定の読み込みが終わるのを待つ
     await loadSettings();
     
@@ -104,18 +117,8 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
     initUIEvents();
     initSelectionPopup();
 
-    const nameOverlay = document.getElementById('nameEntryOverlay');
-    const initialInput = document.getElementById('initialNameInput');
-    const entryBtn = document.getElementById('entryBtn');
-    const myNameInput = document.getElementById('myNameInput'); // 通信パネル側の入力欄
-
-    // 1. すでに保存されている名前があるか確認
-    const savedName = await localforage.getItem('myDisplayName');
-    if (savedName && savedName !== '名無し') {
-        nameOverlay.style.display = 'none'; // 名前があれば入力画面を隠す
-    }
-
     // 2. 「会話を始める」ボタンが押された時の処理
+    // ★ 修正：entryBtn.onclick 内の演出を style.opacity に修正（fadeOutは存在しないプロパティのため）
     entryBtn.onclick = async () => {
         const inputName = initialInput.value.trim();
         if (!inputName) {
@@ -123,16 +126,12 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
             return;
         }
 
-        // 名前を保存して画面を隠す
         await localforage.setItem('myDisplayName', inputName);
         myNameInput.value = inputName;
         
-        // ★修正: fadeOutという架空のプロパティではなく、opacityとtransitionで滑らかに消す
         nameOverlay.style.transition = "opacity 0.3s ease";
         nameOverlay.style.opacity = "0";
-        setTimeout(() => {
-            nameOverlay.style.display = 'none';
-        }, 300);
+        setTimeout(() => nameOverlay.style.display = 'none', 300);
     };
 
     // Enterキーでも決定できるように
