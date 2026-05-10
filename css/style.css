@@ -113,7 +113,7 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 .env-toggle { font-size: 0.85em; background: #fff3e0; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffcc80; color: #e65100; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 .env-toggle input[type="checkbox"] { transform: scale(1.1); margin: 0; }
 
-.chat-textarea { flex-grow: 1; width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; background-color: #f0f4f8; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.chat-textarea { flex-grow: 1; width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; background-color: #f0f4f8; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
 .chat-textarea:empty:before { content: attr(data-placeholder); color: #999; pointer-events: none; }
 
 /* 吹き出しデザイン */
@@ -177,8 +177,36 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
 #sttInterim { min-height: 1.5em; color: #0d6efd; font-weight: bold; font-size: 0.9em; flex-shrink: 0; margin-top: 5px; }
 .typing-indicator { display: none; background-color: #ff9800; color: white; font-weight: bold; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-.caption-bar { display: none; background-color: #e3f2fd; color: #0d47a1; padding: 8px 15px; border-radius: 6px; margin-bottom: 10px; font-weight: bold; text-align: center; border: 2px solid #90caf9; box-shadow: 0 2px 4px rgba(0,0,0,0.1); animation: fadeInOut 3s forwards; }
-@keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-5px); } 10% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
+/* =========================================
+   環境音AIのポップアップ通知（トースト型に進化）
+========================================= */
+.caption-bar {
+    display: none;
+    position: fixed; /* 画面に対して位置を固定 */
+    top: 20px;       /* 上から少し隙間を空ける */
+    left: 50%;
+    transform: translateX(-50%); /* 画面のド真ん中に配置 */
+    z-index: 9999;   /* 設定モーダル(3000)よりもさらに手前に表示 */
+    
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    padding: 10px 20px;
+    border-radius: 30px; /* 丸みを持たせてモダンな見た目に */
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #90caf9;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    pointer-events: none; /* 通知の下にあるボタンを誤って押さないようにする */
+}
+
+/* ポップアップ用のアニメーション（中央揃えを維持したまま上下に動かす） */
+@keyframes fadeInOut { 
+    0% { opacity: 0; transform: translate(-50%, -20px); } 
+    10% { opacity: 1; transform: translate(-50%, 0); } 
+    80% { opacity: 1; transform: translate(-50%, 0); } 
+    100% { opacity: 0; transform: translate(-50%, -20px); display: none; } 
+}
 #selectionPopup { display: none; position: absolute; background-color: #212529; color: white; padding: 6px 12px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; font-size: 0.85em; font-weight: bold; z-index: 1000; }
 #selectionPopup:hover { background-color: #424649; }
 #selectionPopup::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 6px; border-style: solid; border-color: #212529 transparent transparent transparent; }
