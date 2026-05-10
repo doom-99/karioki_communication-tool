@@ -25,21 +25,28 @@ const MSG_STYLES = {
     remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }  
 };
 
-// 参加者ごとのカラーパレット
+// --- 参加者ごとのカラーパレット（順番に割り当てて被りを防ぐ） ---
 const REMOTE_PALETTES = [
-    { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }, 
-    { bg: '#fce4ec', border: '#f06292', nameColor: '#c2185b' },
-    { bg: '#e3f2fd', border: '#64b5f6', nameColor: '#1565c0' }, 
-    { bg: '#f3e5f5', border: '#ba68c8', nameColor: '#7b1fa2' },
-    { bg: '#e0f7fa', border: '#4dd0e1', nameColor: '#006064' }, 
-    { bg: '#fffde7', border: '#dce775', nameColor: '#827717' }
+    { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }, // 1人目: オレンジ
+    { bg: '#e3f2fd', border: '#64b5f6', nameColor: '#1565c0' }, // 2人目: ブルー
+    { bg: '#fce4ec', border: '#f06292', nameColor: '#c2185b' }, // 3人目: ピンク
+    { bg: '#e8f5e9', border: '#66bb6a', nameColor: '#2e7d32' }, // 4人目: グリーン
+    { bg: '#f3e5f5', border: '#ba68c8', nameColor: '#7b1fa2' }, // 5人目: パープル
+    { bg: '#fffde7', border: '#dce775', nameColor: '#827717' }  // 6人目: イエロー
 ];
 
-// 名前から一意の色を決定する関数
+// 名前と色の紐づけを記憶する辞書
+const assignedColors = {};
+let nextColorIndex = 0;
+
 function getColorForName(name) {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return REMOTE_PALETTES[Math.abs(hash) % REMOTE_PALETTES.length];
+    // まだ色が割り当てられていない新しい名前が来たら、次の色を順番に割り当てる
+    if (!assignedColors[name]) {
+        assignedColors[name] = REMOTE_PALETTES[nextColorIndex % REMOTE_PALETTES.length];
+        nextColorIndex++;
+    }
+    // 一度決まった色は、その人が退出するまで同じ色が使われる
+    return assignedColors[name];
 }
 
 // --- 修正: 確実にHTMLを読み込んでから要素を取得するように変更 ---
@@ -96,6 +103,35 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
 
     initUIEvents();
     initSelectionPopup();
+
+    const nameOverlay = document.getElementById('nameEntryOverlay');
+    const initialInput = document.getElementById('initialNameInput');
+    const entryBtn = document.getElementById('entryBtn');
+    const myNameInput = document.getElementById('myNameInput'); // 通信パネル側の入力欄
+
+    // 1. すでに保存されている名前があるか確認
+    const savedName = await localforage.getItem('myDisplayName');
+    if (savedName && savedName !== '名無し') {
+        nameOverlay.style.display = 'none'; // 名前があれば入力画面を隠す
+    }
+
+    // 2. 「会話を始める」ボタンが押された時の処理
+    entryBtn.onclick = async () => {
+        const inputName = initialInput.value.trim();
+        if (!inputName) {
+            alert('名前を入力してください．．');
+            return;
+        }
+
+        // 名前を保存して画面を隠す
+        await localforage.setItem('myDisplayName', inputName);
+        myNameInput.value = inputName;
+        nameOverlay.style.fadeOut = "0.3s";
+        setTimeout(() => nameOverlay.style.display = 'none', 300);
+    };
+
+    // Enterキーでも決定できるように
+    initialInput.onkeydown = (e) => { if(e.key === 'Enter') entryBtn.click(); };
 });
 
 // ★ 修正: localforage は非同期なので async 関数にします
