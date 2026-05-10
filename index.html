@@ -29,7 +29,7 @@
             <button id="entryBtn">会話を始める</button>
         </div>
     </div>
-    
+
     <div class="header">
         <button id="mobileMenuBtn" class="mobile-menu-btn">☰ 通信設定</button>
         
@@ -74,13 +74,7 @@
 
         <div class="chat-container">
             <div class="chat-header">
-                <div class="header-left">
-                    <h2>💬 会話ノート</h2>
-                    <label class="env-toggle">
-                        <input type="checkbox" id="envSoundToggle"> 🔔 環境音AI
-                    </label>
-                </div>
-                <div class="header-right">
+                <div class="header-right" style="width: 100%; justify-content: flex-end;">
                     <button id="copyChatBtn" class="action-btn">📋 コピー</button>
                     <button id="downloadChatBtn" class="action-btn">💾 保存</button>
                     <button id="clearChatBtn" class="clear-btn">🗑️ リセット</button>
@@ -134,6 +128,16 @@
                 <button id="closeSettingsBtn" class="close-icon-btn">✖</button>
             </div>
             <div id="saveToast">✅ 設定を保存しました</div>
+
+            <div class="section-title">便利機能</div>
+            <div class="settings-grid">
+                <div class="settings-item">
+                    <label>🔔 環境音AI (周囲の音を文字化)</label>
+                    <label class="env-toggle" style="display: inline-flex;">
+                        <input type="checkbox" id="envSoundToggle"> 環境音の監視をオンにする
+                    </label>
+                </div>
+            </div>
             
             <div class="section-title">文字と音声の調整</div>
             <div class="settings-grid">
