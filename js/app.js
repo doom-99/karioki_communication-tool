@@ -319,21 +319,26 @@ function initUIEvents() {
 
     // 聞き取り
     const startBtn = document.getElementById('startBtn');
+    
+    // アイコンの定義（メンテナンスしやすいように変数化）
+    const micSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" /><path d="M6 10.5a.75.75 0 0 1 .75.75 5.25 5.25 0 1 0 10.5 0 .75.75 0 0 1 1.5 0 6.75 6.75 0 0 1-6 6.709V21h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-3.791a6.75 6.75 0 0 1-6-6.709A.75.75 0 0 1 6 10.5Z" /></svg></span>`;
+    const stopSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM9 9a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h6a.75.75 0 0 0 .75-.75v-4.5A.75.75 0 0 0 15 9H9Z" clip-rule="evenodd" /></svg></span>`;
+
     startBtn.onclick = () => {
         isUserListening = !isUserListening;
         if (isUserListening) {
             startSilentAudio();
             initVolumeMeter(); 
             startSTT();
-            // ★変更: textContentではなく、innerHTMLでspan構造ごと更新し、aria-labelも変える
-            startBtn.innerHTML = '<span class="icon">👂</span><span class="text">停止</span>';
+            // 停止アイコンとテキストに書き換え
+            startBtn.innerHTML = stopSvg + '<span class="text">停止</span>';
             startBtn.setAttribute('aria-label', '聞き取り停止');
             startBtn.classList.add('listening-active');
         } else {
             stopSilentAudio(); 
             stopSTT();
-            // ★変更: 同様に元に戻す
-            startBtn.innerHTML = '<span class="icon">🎤</span><span class="text">開始</span>';
+            // マイクアイコンとテキストに戻す
+            startBtn.innerHTML = micSvg + '<span class="text">聞き取り</span>';
             startBtn.setAttribute('aria-label', '聞き取り開始');
             startBtn.classList.remove('listening-active');
         }

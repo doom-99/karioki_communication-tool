@@ -95,12 +95,26 @@
 
             <div class="input-row">
                 <button id="startBtn" class="action-icon-btn" aria-label="聞き取り開始">
-                    <span class="icon">🎤</span><span class="text">聞き取り </span>
+                    <span class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" />
+                            <path d="M6 10.5a.75.75 0 0 1 .75.75 5.25 5.25 0 1 0 10.5 0 .75.75 0 0 1 1.5 0 6.75 6.75 0 0 1-6 6.709V21h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-3.791a6.75 6.75 0 0 1-6-6.709A.75.75 0 0 1 6 10.5Z" />
+                        </svg>
+                    </span>
+                    <span class="text">聞き取り</span>
                 </button>
+
                 <button id="waitBtn" class="wait-btn action-icon-btn" aria-label="待って">
-                    <span class="icon">🖐️</span><span class="text">待って </span>
+                    <span class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12 2.25c-1.151 0-2.1.867-2.23 2.011L9.28 8.18a.75.75 0 0 1-1.492-.12l.49-4.583c.13-1.226 1.157-2.127 2.387-2.127H12a2.625 2.625 0 0 1 2.625 2.625v4.54a.75.75 0 0 1-1.5 0V4.875A1.125 1.125 0 0 0 12 3.75ZM8.545 9.405l-.49 4.583c-.13 1.226-1.157 2.127-2.387 2.127H5.25a2.625 2.625 0 0 1-2.625-2.625v-4.54a.75.75 0 0 1 1.5 0v4.54c0 .621.504 1.125 1.125 1.125h.418c.547 0 1.004-.403 1.062-.947l.49-4.583a.75.75 0 0 1 1.492.12l-.167 1.563a.75.75 0 1 1-1.492-.12l.167-1.563ZM15.455 9.405l.49 4.583c.13 1.226 1.157 2.127 2.387 2.127h.418a2.625 2.625 0 0 0 2.625-2.625v-4.54a.75.75 0 0 0-1.5 0v4.54c0 .621-.504 1.125-1.125 1.125h-.418a1.125 1.125 0 0 1-1.062-.947l-.49-4.583a.75.75 0 0 0-1.492.12l.167 1.563a.75.75 0 1 0 1.492.12l-.167-1.563ZM12 21.75a8.25 8.25 0 0 0 8.25-8.25.75.75 0 0 1 1.5 0A9.75 9.75 0 0 1 12 23.25a9.75 9.75 0 0 1-9.75-9.75.75.75 0 0 1 1.5 0 8.25 8.25 0 0 0 8.25 8.25Z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span class="text">待って</span>
                 </button>
+
                 <textarea id="ttsInput" rows="1" placeholder="返答を入力（Enterで送信）"></textarea>
+                
                 <button id="speakBtn" class="action-icon-btn" aria-label="送信">
                     <span class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 1.2em; height: 1.2em; vertical-align: -0.1em;">
