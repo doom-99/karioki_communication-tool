@@ -256,12 +256,13 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
 }
 
 /* =========================================
-   アイコンボタン共通スタイル（style.cssの適当な場所、または末尾の直前に追加）
+   アイコンボタン共通スタイル
 ========================================= */
 .action-icon-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
     min-height: 44px; /* ★Apple推奨の最小タップ領域 */
-    min-width: 44px; padding: 8px 12px; box-sizing: border-box; transition: all 0.2s ease;
+    min-width: 44px; 
+    padding: 6px 8px; box-sizing: border-box; transition: all 0.2s ease;
 }
 .action-icon-btn .icon { font-size: 1.2em; }
 
