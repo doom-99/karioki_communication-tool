@@ -103,7 +103,7 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 .env-toggle { font-size: 0.85em; background: #fff3e0; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffcc80; color: #e65100; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 .env-toggle input[type="checkbox"] { transform: scale(1.1); margin: 0; }
 
-.chat-textarea { flex-grow: 1; width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; background-color: #f0f4f8; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.chat-textarea { flex-grow: 1; width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; background-color: #f0f4f8; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
 .chat-textarea:empty:before { content: attr(data-placeholder); color: #999; pointer-events: none; }
 
 /* 吹き出しデザイン */
