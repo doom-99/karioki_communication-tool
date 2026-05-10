@@ -108,19 +108,6 @@
         </div>
     </div>
 
-    <script src="js/webrtc.js"></script>
-    <script src="js/app.js"></script>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('ServiceWorker 登録成功:', reg.scope))
-                    .catch((err) => console.log('ServiceWorker 登録失敗:', err));
-            });
-        }
-    </script>
-
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-content settings-container">
             <div class="modal-header">
@@ -179,5 +166,17 @@
         </div>
     </div>
 
+    <script src="js/webrtc.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('ServiceWorker 登録成功:', reg.scope))
+                    .catch((err) => console.log('ServiceWorker 登録失敗:', err));
+            });
+        }
+    </script>
 </body>
 </html>
