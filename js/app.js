@@ -320,10 +320,10 @@ function initUIEvents() {
     // 聞き取り
     const startBtn = document.getElementById('startBtn');
     
-    // アイコンの定義（メンテナンスしやすいように変数化）
-    const micSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" /><path d="M6 10.5a.75.75 0 0 1 .75.75 5.25 5.25 0 1 0 10.5 0 .75.75 0 0 1 1.5 0 6.75 6.75 0 0 1-6 6.709V21h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-3.791a6.75 6.75 0 0 1-6-6.709A.75.75 0 0 1 6 10.5Z" /></svg></span>`;
-    const stopSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM9 9a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h6a.75.75 0 0 0 .75-.75v-4.5A.75.75 0 0 0 15 9H9Z" clip-rule="evenodd" /></svg></span>`;
-
+    // 聞き取りボタンのアイコン定義を更新
+    const micSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>`;
+    const stopSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-4-4h8V8H8v8z"/></svg></span>`;
+    
     startBtn.onclick = () => {
         isUserListening = !isUserListening;
         if (isUserListening) {
