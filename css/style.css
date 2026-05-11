@@ -263,14 +263,14 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
     min-height: 44px; /* ★Apple推奨の最小タップ領域 */
     min-width: 44px; 
     padding: 2px 10px; box-sizing: border-box; transition: all 0.2s ease;
-    font-size: 1.2em;
+    font-size: 1em;
 }
 .action-icon-btn .icon { font-size: 1.2em; }
 
 /* アイコン内のSVGのサイズと配置を調整 */
 .action-icon-btn .icon svg {
-    width: 1.2em;   /* 文字より少し大きく */
-    height: 1.2em;
+    width: 1em;   /* 文字より少し大きく */
+    height: 1em;
     display: block; /* 余計な隙間を消す */
 }
 
