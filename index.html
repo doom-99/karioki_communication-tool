@@ -31,11 +31,25 @@
     </div>
 
     <div class="header">
-        <button id="mobileMenuBtn" class="mobile-menu-btn">☰ 通信設定</button>
+        <button id="mobileMenuBtn" class="mobile-menu-btn action-icon-btn">
+            <span class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                    <path d="M500-480q33 0 56.5-23.5T580-560q0-33-23.5-56.5T500-640q-33 0-56.5 23.5T420-560q0 33 23.5 56.5T500-480ZM200-440q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41q-58 0-99-41t-41-99Zm540 0q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41q-58 0-99-41t-41-99ZM340-160q-109 0-184.5-75.5T80-420q0-5 1-13t2-15q58 10 112 39.5T290-320q41-41 94.5-70.5T500-420q53 0 106.5 29.5T701-320q43-43 96.5-72.5T910-431l1 11q0 109-75.5 184.5T651-160H340Z"/>
+                </svg>
+            </span>
+            <span class="text">通信設定</span>
+        </button>
         
         <h1>会話ノート</h1>
         <div>
-            <button id="settingsBtn" class="settings-link-btn">⚙️ 設定・辞書</button>
+            <button id="settingsBtn" class="settings-link-btn action-icon-btn">
+                <span class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                        <path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-1 13.5l103 78-110 190-119-50q-11 8-23 15t-24 12L590-80H370Zm70-80h80l12-96q21-9 37.5-19.5T599-301l91 38 40-68-79-60q4-14 6-27.5t2-29.5q0-16-2-29.5t-6-27.5l79-60-40-68-91 38q-14-15-30.5-25.5T532-704l-12-96h-80l-12 96q-21 9-37.5 19.5T361-659l-91-38-40 68 79 60q-4 14-6 27.5t-2 29.5q0 16 2 29.5t6 27.5l-79 60 40 68 91-38q14 15 30.5 25.5T428-256l12 96Zm40-220q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm0-100Z"/>
+                    </svg>
+                </span>
+                <span class="text">設定・辞書</span>
+            </button>
         </div>
     </div>
 
@@ -75,9 +89,30 @@
         <div class="chat-container">
             <div class="chat-header">
                 <div class="header-right" style="width: 100%; justify-content: flex-end;">
-                    <button id="copyChatBtn" class="action-btn">📋 コピー </button>
-                    <button id="downloadChatBtn" class="action-btn">💾 保存 </button>
-                    <button id="clearChatBtn" class="clear-btn">🗑️ リセット </button>
+                    <button id="copyChatBtn" class="action-btn action-icon-btn">
+                        <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                                <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0-33-23.5-56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/>
+                            </svg>
+                        </span>
+                        <span class="text">コピー</span>
+                    </button>
+                    <button id="downloadChatBtn" class="action-btn action-icon-btn">
+                        <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                                <path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/>
+                            </svg>
+                        </span>
+                        <span class="text">保存</span>
+                    </button>
+                    <button id="clearChatBtn" class="clear-btn action-icon-btn">
+                        <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                                <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+                            </svg>
+                        </span>
+                        <span class="text">リセット</span>
+                    </button>
                 </div>
             </div>
 

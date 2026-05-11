@@ -277,8 +277,8 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
 /* スマホ時のアイコンサイズ調整（既存のメディアクエリ内に追加・修正） */
 @media (max-width: 500px) {
     .action-icon-btn .icon svg {
-        width: 1.8em; /* スマホではさらに大きくして押しやすく */
-        height: 1.8em;
+        width: 1.7em; /* スマホではさらに大きくして押しやすく */
+        height: 1.7em;
     }
 }
 

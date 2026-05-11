@@ -323,7 +323,7 @@ function initUIEvents() {
     // 聞き取りボタンのアイコン定義を更新
     const micSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>`;
     const stopSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-4-4h8V8H8v8z"/></svg></span>`;
-    
+
     startBtn.onclick = () => {
         isUserListening = !isUserListening;
         if (isUserListening) {
@@ -394,13 +394,15 @@ function initUIEvents() {
                 // 開いている状態なら閉じる
                 panel.classList.remove('active'); 
                 overlay.classList.remove('active');
-                menuBtn.textContent = '☰ 通信設定'; // ★追加: テキストを元に戻す 
+                // 変更: アイコン付きに戻す
+                menuBtn.innerHTML = connectSvg + '<span class="text">通信設定</span>';
             } else {
                 // 閉じている状態なら開く
                 panel.classList.add('active'); 
                 overlay.classList.add('active'); 
                 panel.open = true; 
-                menuBtn.textContent = '✖ 閉じる'; // ★追加: 閉じるボタンに変化させる
+                // 変更: 閉じるアイコンに切り替え
+                menuBtn.innerHTML = closeSvg + '<span class="text">閉じる</span>';
             }
         };
         overlay.onclick = () => { 
