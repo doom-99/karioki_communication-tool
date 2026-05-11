@@ -419,9 +419,9 @@ function initUIEvents() {
     const settingsModal = document.getElementById('settingsModal');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 
-    settingsBtn.onclick = () => {
+    settingsBtn.onclick = async () => { // ★ async を追加
         settingsModal.classList.add('active');
-        initSettingsLogic(); // モーダルが開くときに中身を初期化
+        await initSettingsLogic(); // ★ await を追加して読み込みを待つ
     };
     closeSettingsBtn.onclick = () => settingsModal.classList.remove('active');
     // 外側クリックで閉じる
@@ -685,7 +685,7 @@ function handleRemoteTyping(d) {
     else indicator.style.display = 'none';
 }
 
-function initSettingsLogic() {
+async function initSettingsLogic() { // ★ async 化
     const disp = document.getElementById('currentFontSizeDisplay');
     const toggle = document.getElementById('darkModeToggle');
     const sel = document.getElementById('voiceSelect');
@@ -694,39 +694,49 @@ function initSettingsLogic() {
 
     // 現在の値をUIに反映
     disp.textContent = currentFontSize;
-    toggle.checked = localStorage.getItem('darkMode') === 'true';
+
+    // ★ 修正: localStorage ではなく localforage から取得
+    const isDark = await localforage.getItem('darkMode');
+    toggle.checked = isDark === true;
+
     rate.value = savedTtsRate;
     pitch.value = savedTtsPitch;
     document.getElementById('rateValue').textContent = savedTtsRate;
     document.getElementById('pitchValue').textContent = savedTtsPitch;
 
     // 音声リスト
-    function updateVoices() {
+    async function updateVoices() {
         const vs = window.speechSynthesis.getVoices().filter(v => v.lang.includes('ja'));
         sel.innerHTML = vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
-        sel.value = localStorage.getItem('ttsVoice') || "";
+        
+        // ★ 修正: 音声の選択状態も localforage から取得
+        const savedVoice = await localforage.getItem('ttsVoice');
+        sel.value = savedVoice || "";
     }
-    updateVoices();
+    await updateVoices();
     window.speechSynthesis.onvoiceschanged = updateVoices;
 
     // イベント登録（変更即反映）
     document.getElementById('fontIncreaseBtn').onclick = () => { currentFontSize += 2; saveSet(); };
     document.getElementById('fontDecreaseBtn').onclick = () => { currentFontSize -= 2; saveSet(); };
-    // (initSettingsLogic 内のイベント登録部分)
-    toggle.onchange = () => { localforage.setItem('darkMode', toggle.checked); loadSettings(); showSetToast(); };
-    sel.onchange = () => { localforage.setItem('ttsVoice', sel.value); showSetToast(); };
-    rate.oninput = () => { 
-        savedTtsRate = rate.value; 
-        localforage.setItem('ttsRate', rate.value); 
-        document.getElementById('rateValue').textContent = rate.value; 
-    };
-    pitch.oninput = () => { 
-        savedTtsPitch = pitch.value; 
-        localforage.setItem('ttsPitch', pitch.value); 
-        document.getElementById('pitchValue').textContent = pitch.value; 
+    
+    toggle.onchange = () => { 
+        localforage.setItem('darkMode', toggle.checked); 
+        loadSettings(); 
+        showSetToast(); 
     };
 
-    function saveSet() { localforage.setItem('appFontSize', currentFontSize); loadSettings(); showSetToast(); disp.textContent = currentFontSize; }
+    sel.onchange = () => { 
+        localforage.setItem('ttsVoice', sel.value); 
+        showSetToast(); 
+    };
+
+    function saveSet() { 
+        localforage.setItem('appFontSize', currentFontSize); 
+        loadSettings(); 
+        showSetToast(); 
+        disp.textContent = currentFontSize; 
+    }
     renderDictInModal();
 }
 
