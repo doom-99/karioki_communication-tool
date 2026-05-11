@@ -4,7 +4,7 @@ let isUserListening = false;
 let speakingQueueCount = 0;
 let isMyTyping = false;
 let customDictionary = {};
-let currentFontSize = 16;
+let currentFontSize = 14;
 let savedTtsRate = 1.0;
 let savedTtsPitch = 1.0;
 

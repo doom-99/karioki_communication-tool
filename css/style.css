@@ -1,7 +1,7 @@
 /* =========================================
    共通変数・リセット
 ========================================= */
-:root { --font-size: 14px; }
+:root { --font-size: 10px; }
 body { 
     font-family: 'BIZ UDPGothic', sans-serif; /* ★UDフォントを優先適用 */ 
     background-color: #f4f7f6; -webkit-text-size-adjust: 100%; 
@@ -274,32 +274,32 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
     display: block; /* 余計な隙間を消す */
 }
 
-/* スマホ時のアイコンサイズ調整（既存のメディアクエリ内に追加・修正） */
-@media (max-width: 500px) {
-    .action-icon-btn .icon svg {
-        width: 1.4em; /* スマホではさらに大きくして押しやすく */
-        height: 1.4em;
-    }
-}
-
 /* =========================================
    レスポンシブ (スマホ向け 幅500px以下)
 ========================================= */
 @media (max-width: 500px) {
     h1 { font-size: 1.1rem; }
-    button { padding: 10px 12px; }
+    button { padding: 8px 10px; } /* スマホの時は少しボタンを大きく */
     .header { flex-direction: row; align-items: center; justify-content: space-between; }
     .chat-textarea { line-height: 1.35; }
     
-    /* ★ここから下を追加：スマホ時のみアイコン化して押しやすくする */
+    /* 🎤聞き取り等の入力欄まわり */
     .input-row { flex-wrap: nowrap; gap: 6px; }
+    #ttsInput { min-width: 0; }
+    
+    /* アイコンボタンを丸くする */
     .action-icon-btn {
         padding: 0; width: 48px; height: 48px; flex-shrink: 0;
-        border-radius: 50%; /* 丸ボタンにして指の腹で押しやすくする */
+        border-radius: 50%; 
     }
-    .action-icon-btn .text { display: none; /* 文字を隠す */ }
+    .action-icon-btn .text { display: none; }
     .action-icon-btn .icon { font-size: 1.5em; margin: 0; }
-    #ttsInput { min-width: 0; } /* テキストエリアが潰れないようにする */
+    
+    /* SVG自体のサイズ */
+    .action-icon-btn .icon svg {
+        width: 1.4em; 
+        height: 1.4em;
+    }
 }
 
 /* =========================================
@@ -316,6 +316,8 @@ body.dark-mode input[type="text"], body.dark-mode select, body.dark-mode textare
 body.dark-mode .info-box { background-color: #0d47a1; color: #e3f2fd; border-color: #1565c0; }
 body.dark-mode .dict-item { background: #1e1e1e; border-color: #333; }
 body.dark-mode .dict-item:nth-child(even) { background-color: #252525; }
+body.dark-mode .close-icon-btn { color: #aaa; }
+body.dark-mode .close-icon-btn:hover { color: #fff; } /* ダークモードでは白く光らせる */
 
 /* ダークモード時の吹き出しの文字色は、読みやすさのために濃い色を維持 */
 body.dark-mode .msg-text { color: #212529; }
