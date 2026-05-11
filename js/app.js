@@ -149,7 +149,7 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
 // ★ 修正: localforage は非同期なので async 関数にします
 async function loadSettings() {
     customDictionary = (await localforage.getItem('userDictionary')) || {};
-    currentFontSize = parseInt(await localforage.getItem('appFontSize')) || 16;
+    currentFontSize = parseInt(await localforage.getItem('appFontSize')) || 14;
     savedTtsRate = parseFloat(await localforage.getItem('ttsRate')) || 1.0;
     savedTtsPitch = parseFloat(await localforage.getItem('ttsPitch')) || 1.0;
     

@@ -1,7 +1,7 @@
 /* =========================================
    共通変数・リセット
 ========================================= */
-:root { --font-size: 10px; }
+:root { --font-size: 14px; }
 body { 
     font-family: 'BIZ UDPGothic', sans-serif; /* ★UDフォントを優先適用 */ 
     background-color: #f4f7f6; -webkit-text-size-adjust: 100%; 
