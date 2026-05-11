@@ -155,7 +155,14 @@ input[type="text"], select { box-sizing: border-box; padding: 10px; border: 1px 
 }
 .input-row { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; flex-wrap: wrap; }
 .input-row input[type="text"], .input-row textarea { flex-grow: 1; margin-bottom: 0; min-width: 150px; }
-textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1em; line-height: 1.4; box-sizing: border-box; overflow-y: hidden; font-family: inherit; }
+textarea#ttsInput { 
+    resize: none; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; 
+    font-size: 1em; line-height: 1.4; box-sizing: border-box; font-family: inherit; 
+    /* ★変更: 自動リサイズのための設定 */
+    overflow-y: auto; 
+    min-height: 44px; /* 最低1行分の高さを確保 */
+    max-height: 150px; /* ★重要: 画面を埋め尽くさないよう最大高さを制限 */
+}
 
 /* 状態・アニメーション */
 /* ★変更: 聞き取り中のボタンをより目立たせ，録音中であることを強調 */

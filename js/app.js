@@ -304,19 +304,24 @@ function initUIEvents() {
     // 送信
     document.getElementById('speakBtn').onclick = speakAndLog;
     
-    // ★Enter送信の修正
+    // ★Enter送信
     ttsInput.addEventListener('keydown', (e) => {
-        // IME（漢字変換）確定のEnterでは送信しないようにする
         if (e.isComposing || e.keyCode === 229) return;
-        
         if (e.key === 'Enter') {
-            if (!e.shiftKey) { // Shift+Enterなら改行、Enter単体なら送信
+            if (!e.shiftKey) { 
                 e.preventDefault(); 
                 speakAndLog();
-                // 送信後に高さをリセット（自動リサイズ機能用）
                 setTimeout(() => ttsInput.style.height = 'auto', 10);
             }
         }
+    });
+
+    // ★追加: 入力文字数に合わせてテキストエリアの高さを自動調整
+    ttsInput.addEventListener('input', function() {
+        // 一旦高さをautoにして本来の高さを再計算させる
+        this.style.height = 'auto';
+        // 中身の高さ（scrollHeight）に合わせて高さをピクセル指定
+        this.style.height = this.scrollHeight + 'px';
     });
 
     // 聞き取り
