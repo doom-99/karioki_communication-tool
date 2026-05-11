@@ -408,7 +408,7 @@ function initUIEvents() {
         overlay.onclick = () => { 
             panel.classList.remove('active'); 
             overlay.classList.remove('active');
-            menuBtn.textContent = '☰ 通信設定'; // ★追加 
+            menuBtn.innerHTML = connectSvg + '<span class="text">通信設定</span>';
         };
     }
 
