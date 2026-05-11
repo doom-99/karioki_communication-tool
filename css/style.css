@@ -289,7 +289,7 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
     
     /* アイコンボタンを丸くする */
     .action-icon-btn {
-        padding: 0; width: 48px; height: 48px; flex-shrink: 0;
+        padding: 0; width: 44px; height: 44px; flex-shrink: 0;
         border-radius: 50%; 
     }
     .action-icon-btn .text { display: none; }
