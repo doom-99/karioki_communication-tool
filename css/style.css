@@ -303,6 +303,32 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
 }
 
 /* =========================================
+   カラーユニバーサルデザイン (CUD) 対応ボタン
+========================================= */
+/* 🗣️ 送信（手入力）ボタン：CUDブルー */
+#speakBtn {
+    background-color: #005AFF !important; 
+    color: #FFFFFF !important;
+}
+#speakBtn:hover { background-color: #0046C7 !important; }
+
+/* 🎤 聞き取り（マイク）ボタン：CUDオレンジ */
+#startBtn {
+    background-color: #F6AA00 !important;
+    color: #212529 !important; /* オレンジの背景には黒文字が最も見やすい */
+}
+#startBtn:hover { background-color: #D49200 !important; }
+
+/* ★ 修正: 録音中の色もCUD推奨の「明るい赤」に変更 */
+.listening-active { 
+    background-color: #FF4B00 !important; 
+    color: #ffffff !important; 
+    border: none !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* =========================================
    🌙 ダークモード用スタイル
 ========================================= */
 body.dark-mode { background-color: #121212; color: #e0e0e0; }

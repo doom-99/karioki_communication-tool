@@ -18,21 +18,23 @@ let lastCaptionTime = 0;
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
-// --- メッセージのスタイル定義（復刻） ---
+// --- メッセージのスタイル定義（CUD対応・ボタン色と連動） ---
 const MSG_STYLES = {
-    tts:    { bg: '#e8f5e9', border: '#66bb6a', nameColor: '#2e7d32' }, 
-    stt:    { bg: '#e3f2fd', border: '#42a5f5', nameColor: '#1565c0' }, 
-    remote: { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }  
+    // 🗣️ 送信（TTS）: CUDブルーのボタンと同系色
+    tts:    { bg: '#E5F3FF', border: '#005AFF', nameColor: '#005AFF' }, 
+    // 🎤 聞き取り（STT）: CUDオレンジのボタンと同系色
+    stt:    { bg: '#FFF2D6', border: '#F6AA00', nameColor: '#C38700' }, 
+    // 相手（リモート）: 自分が送信した青・オレンジと見分けやすいCUDグリーン
+    remote: { bg: '#E5F9F1', border: '#03AF7A', nameColor: '#02875E' }  
 };
 
-// --- 参加者ごとのカラーパレット（順番に割り当てて被りを防ぐ） ---
+// --- 参加者ごとのカラーパレット（CUD推奨の識別しやすい色） ---
 const REMOTE_PALETTES = [
-    { bg: '#fff3e0', border: '#ffa726', nameColor: '#e65100' }, // 1人目: オレンジ
-    { bg: '#e3f2fd', border: '#64b5f6', nameColor: '#1565c0' }, // 2人目: ブルー
-    { bg: '#fce4ec', border: '#f06292', nameColor: '#c2185b' }, // 3人目: ピンク
-    { bg: '#e8f5e9', border: '#66bb6a', nameColor: '#2e7d32' }, // 4人目: グリーン
-    { bg: '#f3e5f5', border: '#ba68c8', nameColor: '#7b1fa2' }, // 5人目: パープル
-    { bg: '#fffde7', border: '#dce775', nameColor: '#827717' }  // 6人目: イエロー
+    { bg: '#E5F9F1', border: '#03AF7A', nameColor: '#02875E' }, // CUDグリーン
+    { bg: '#FCE4EC', border: '#FF8082', nameColor: '#C2185B' }, // CUDピンク
+    { bg: '#F3E5F5', border: '#990099', nameColor: '#7B1FA2' }, // CUDパープル
+    { bg: '#FFFDE7', border: '#84C118', nameColor: '#5B8510' }, // CUD黄緑
+    { bg: '#EFEFEF', border: '#84919E', nameColor: '#4B5156' }  // CUDグレー
 ];
 
 // 名前と色の紐づけを記憶する辞書
