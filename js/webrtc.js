@@ -106,6 +106,14 @@ function setupConnection(conn) {
         if (data.type === 'text') {
             // 受信したメッセージは「remote」として扱う
             addMessage(data.name || '相手', data.text.trim(), 'remote');
+            
+            // ★ 追加: 自分がホスト（部屋の作成者）なら、送信元以外の全員（他のゲスト）にメッセージを中継する
+            if (isRoomHost) {
+                connections.forEach(c => {
+                    // 送信してきた人以外で、接続が開いている人にだけ転送
+                    if (c !== conn && c.open) c.send(data);
+                });
+            }
         }
         else if (data.type === 'history') {
             if (data.isHost) {
@@ -129,7 +137,10 @@ function setupConnection(conn) {
             if (window.handleRemoteTyping) {
                 window.handleRemoteTyping(data);
             }
-            connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
+            // ★ 修正: タイピング状態の中継も、ホストの時だけ行うように安全策を追記
+            if (isRoomHost) {
+                connections.forEach(c => { if (c !== conn && c.open) c.send(data); });
+            }
         }
     });
 
