@@ -269,16 +269,16 @@ textarea#ttsInput { resize: none; padding: 10px; border: 1px solid #ced4da; bord
 
 /* アイコン内のSVGのサイズと配置を調整 */
 .action-icon-btn .icon svg {
-    width: 1.4em;   /* 文字より少し大きく */
-    height: 1.4em;
+    width: 1.2em;   /* 文字より少し大きく */
+    height: 1.2em;
     display: block; /* 余計な隙間を消す */
 }
 
 /* スマホ時のアイコンサイズ調整（既存のメディアクエリ内に追加・修正） */
 @media (max-width: 500px) {
     .action-icon-btn .icon svg {
-        width: 1.7em; /* スマホではさらに大きくして押しやすく */
-        height: 1.7em;
+        width: 1.6em; /* スマホではさらに大きくして押しやすく */
+        height: 1.6em;
     }
 }
 
