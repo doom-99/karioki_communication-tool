@@ -1,5 +1,5 @@
 // ★ 1. バージョン名を変更する（v1 から v2 などに変えることでアップデートを検知させます）
-const CACHE_NAME = 'comm-tool-cache-v11';
+const CACHE_NAME = 'comm-tool-cache-v12';
 
 // ★ 2. キャッシュリストから settings.html と settings.js を削除
 const urlsToCache = [
