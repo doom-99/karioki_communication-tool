@@ -526,12 +526,16 @@ function initSelectionPopup() {
 // 他のファイルから呼ばれる指標表示
 window.handleRemoteTyping = function(d) {
     const indicator = document.getElementById('typingIndicator');
+    // 手のひらアイコン
+    const handIcon = `<svg class="ui-icon" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-120q-100 0-170-70t-70-170v-300q0-25 17.5-42.5T300-720q25 0 42.5 17.5T360-660v280h60v-400q0-25 17.5-42.5T480-840q25 0 42.5 17.5T540-780v340h60v-280q0-25 17.5-42.5T660-780q25 0 42.5 17.5T720-720v280h60v-160q0-25 17.5-42.5T840-660q25 0 42.5 17.5T900-600v260q0 92-64 156t-156 64H480Z"/></svg>`;
+    
     if (d.isTyping) { 
-        // 変更: innerHTMLを使用し、ユーザー名はサニタイズ（安全化）する
         indicator.innerHTML = `${handIcon} ${escapeHTML(d.name)}さんが入力中...`; 
         indicator.style.display = 'block'; 
     }
-    else indicator.style.display = 'none';
+    else {
+        indicator.style.display = 'none';
+    }
 };
 
 // --- 音声認識 (STT) ---
@@ -731,16 +735,6 @@ function showAudioCaption(t) {
     c.textContent = t; c.style.display = 'block';
     c.style.animation = 'none'; c.offsetHeight;
     c.style.animation = 'fadeInOut 3s forwards';
-}
-
-function handleRemoteTyping(d) {
-    const indicator = document.getElementById('typingIndicator');
-    if (d.isTyping) { 
-        // 変更: innerHTMLを使用し、ユーザー名はサニタイズ（安全化）する
-        indicator.innerHTML = `${handIcon} ${escapeHTML(d.name)}さんが入力中...`; 
-        indicator.style.display = 'block'; 
-    }
-    else indicator.style.display = 'none';
 }
 
 async function initSettingsLogic() { // ★ async 化
