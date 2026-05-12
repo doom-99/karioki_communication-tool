@@ -15,6 +15,7 @@ let envAudioContext = null;
 let workletNode = null;
 let envStream = null;
 let lastCaptionTime = 0;
+let isTtsSpeaking = false; // ★ 追加: 自分の端末が読み上げ中かどうかを判定するフラグ
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -273,7 +274,6 @@ async function initVolumeMeter() {
         function updateMeter() {
             if (!isUserListening) { 
                 volumeMeter.style.width = '0%'; 
-                requestAnimationFrame(updateMeter); 
                 return; 
             }
             analyser.getByteFrequencyData(dataArray);
@@ -545,6 +545,9 @@ function startSTT() {
     recognition.onstart = () => { isApiActive = true; clearTimeout(restartTimer); restartTimer = null; };
 
     recognition.onresult = (e) => {
+        // ★ 追加: 自分が読み上げている最中の音声は拾わずにすべて破棄する（エコー防止）
+        if (isTtsSpeaking) return;
+
         let interim = ''; let final = '';
         for (let i = e.resultIndex; i < e.results.length; ++i) {
             if (e.results[i].isFinal) final += e.results[i][0].transcript + '．\n\n';
@@ -568,9 +571,13 @@ function startSTT() {
         isApiActive = false;
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
             isUserListening = false;
-            document.getElementById('startBtn').textContent = '🎤 聞き取り開始';
+            
+            // ★ 修正: エラーで強制終了した際にも、正しいSVGアイコンで復元する
+            const micSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></span>`;
+            document.getElementById('startBtn').innerHTML = micSvg + '<span class="text">聞き取り</span>';
             document.getElementById('startBtn').classList.remove('listening-active');
-            alert("マイクの使用が許可されていません。"); return;
+            
+            alert("マイクの使用が許可されていません．"); return;
         }
         if (e.error === 'aborted') return;
         scheduleRestart((e.error === 'audio-capture') ? 1000 : 250);
@@ -622,9 +629,20 @@ function speakAndLog() {
 
     const chunks = text.match(/.*?[、。，．！？\n\s]+|.{1,25}/g) || [text];
     let idx = 0; let offset = 0;
+
+    // ★ 追加: 再生キューに入るタイミングでフラグをオンにする
+    isTtsSpeaking = true;
     
     function play() {
-        if (idx >= chunks.length) { speakingQueueCount--; if(speakingQueueCount<=0) renderAllMessages(); return; }
+        if (idx >= chunks.length) { 
+            speakingQueueCount--; 
+            if(speakingQueueCount<=0) {
+                renderAllMessages(); 
+                // ★ 追加: 全ての文節を読み終わったらフラグをオフにし、マイクの耳を開ける
+                isTtsSpeaking = false;
+            }
+            return; 
+        }
         const uttr = new SpeechSynthesisUtterance(chunks[idx]);
         uttr.lang = 'ja-JP'; uttr.rate = savedTtsRate; uttr.pitch = savedTtsPitch;
         
