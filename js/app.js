@@ -414,7 +414,7 @@ function initUIEvents() {
     // ★ 追加: アイコンのSVG文字列を定義しておく
     const connectSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M500-480q33 0 56.5-23.5T580-560q0-33-23.5-56.5T500-640q-33 0-56.5 23.5T420-560q0 33 23.5 56.5T500-480ZM200-440q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41q-58 0-99-41t-41-99Zm540 0q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41q-58 0-99-41t-41-99ZM340-160q-109 0-184.5-75.5T80-420q0-5 1-13t2-15q58 10 112 39.5T290-320q41-41 94.5-70.5T500-420q53 0 106.5 29.5T701-320q43-43 96.5-72.5T910-431l1 11q0 109-75.5 184.5T651-160H340Z"/></svg></span>`;
     const closeSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></span>`;
-    
+
     if (menuBtn) {
         // ★変更: ボタンを押した時の処理を「すでに開いていれば閉じ、閉じていれば開く」という条件分岐に変更
         menuBtn.onclick = () => { 
@@ -761,6 +761,22 @@ async function initSettingsLogic() { // ★ async 化
         localforage.setItem('ttsVoice', sel.value); 
         showSetToast(); 
     };
+
+    // ★ 追加: スライダーを動かした時に数値をリアルタイム表示し、指を離した時に保存する
+    // （※inputとchangeを分けることで、ドラッグ中の無駄な保存処理によるアプリの重さを防ぎます）
+    rate.addEventListener('input', () => { document.getElementById('rateValue').textContent = rate.value; });
+    rate.addEventListener('change', () => {
+        savedTtsRate = parseFloat(rate.value);
+        localforage.setItem('ttsRate', savedTtsRate);
+        showSetToast();
+    });
+
+    pitch.addEventListener('input', () => { document.getElementById('pitchValue').textContent = pitch.value; });
+    pitch.addEventListener('change', () => {
+        savedTtsPitch = parseFloat(pitch.value);
+        localforage.setItem('ttsPitch', savedTtsPitch);
+        showSetToast();
+    });
 
     function saveSet() { 
         localforage.setItem('appFontSize', currentFontSize); 
