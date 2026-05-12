@@ -311,7 +311,6 @@ function initUIEvents() {
             if (!e.shiftKey) { 
                 e.preventDefault(); 
                 speakAndLog();
-                setTimeout(() => ttsInput.style.height = 'auto', 10);
             }
         }
     });
@@ -592,7 +591,11 @@ function speakAndLog() {
     
     addMessage(getMyName(), text, 'tts');
     broadcastData(text);
-    ttsInput.value = ''; ttsInput.blur();
+
+    // ★ 変更: テキストを空にした直後に、高さをリセットする処理を追加
+    ttsInput.value = ''; 
+    ttsInput.style.height = 'auto'; 
+    ttsInput.blur();
 
     const chunks = text.match(/.*?[、。，．！？\n\s]+|.{1,25}/g) || [text];
     let idx = 0; let offset = 0;
