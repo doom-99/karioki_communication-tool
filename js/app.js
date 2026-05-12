@@ -230,12 +230,6 @@ function saveMessages() {
 }
 function messagesToText() { return window.chatMessages.map(m => `${m.name}： ${m.text}`).join('\n'); }
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])); }
-function getColorForName(n) {
-    const pals = [{bg:'#fff3e0',c:'#e65100'},{bg:'#fce4ec',c:'#c2185b'},{bg:'#e3f2fd',c:'#1565c0'}];
-    let h = 0; for(let i=0;i<n.length;i++) h = n.charCodeAt(i) + ((h<<5)-h);
-    const p = pals[Math.abs(h)%pals.length];
-    return { bg: p.bg, border: p.c, nameColor: p.c };
-}
 
 // --- 通信ダミー（webrtc.jsがない場合のエラー回避） ---
 if (typeof broadcastData !== 'function') window.broadcastData = () => {};
