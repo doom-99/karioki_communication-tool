@@ -358,23 +358,42 @@ function initUIEvents() {
         broadcastTypingState(isMyTyping);
     };
 
+    // ★ 追加: ドロップダウンメニューの開閉制御
+    const chatMenuBtn = document.getElementById('chatMenuBtn');
+    const chatMenuDropdown = document.getElementById('chatMenuDropdown');
+    
+    chatMenuBtn.onclick = (e) => {
+        e.stopPropagation(); // 外側クリック検知のためイベント伝播を止める
+        chatMenuDropdown.classList.toggle('active');
+    };
+    
+    // 画面のどこかをクリックしたらメニューを閉じる
+    document.addEventListener('click', (e) => {
+        if (!chatMenuDropdown.contains(e.target) && e.target !== chatMenuBtn) {
+            chatMenuDropdown.classList.remove('active');
+        }
+    });
+
     // リセット
     document.getElementById('clearChatBtn').onclick = () => {
+        chatMenuDropdown.classList.remove('active'); // ★ メニューを閉じる
         if(confirm("消去しますか？")) { 
             window.chatMessages = []; 
             renderAllMessages(); 
-            localforage.removeItem('chatMessages'); // ★修正
+            localforage.removeItem('chatMessages'); 
         }
     };
     
-    // コピー・保存
+    // コピー
     document.getElementById('copyChatBtn').onclick = () => {
+        chatMenuDropdown.classList.remove('active'); // ★ メニューを閉じる
         navigator.clipboard.writeText(messagesToText()).then(() => alert("コピー完了"));
     };
 
-    // ★ 追加: ここから下の「保存」処理を追加してください
+    // 保存
     document.getElementById('downloadChatBtn').onclick = () => {
-        if (!window.chatMessages.length) { alert("保存する履歴がありません。"); return; }
+        chatMenuDropdown.classList.remove('active'); // ★ メニューを閉じる
+        if (!window.chatMessages.length) { alert("保存する履歴がありません．"); return; }
         const blob = new Blob([messagesToText()], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const date = new Date();
