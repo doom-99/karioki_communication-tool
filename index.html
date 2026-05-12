@@ -93,8 +93,15 @@
                     <div class="label">あなたのID：</div>
                     <div id="myPeerId" class="sync-id">取得中...</div>
                     <div class="btn-group">
-                        <button id="copyUrlBtn" class="invite-btn" style="display:none;"><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M716-120H536v-80h180q75 0 127.5-52.5T896-380q0-75-52.5-127.5T716-560h-64v-80h64q109 0 184.5 75.5T976-380q0 109-75.5 184.5T716-120ZM244-440h472v-80H244v80Zm180 320H244q-109 0-184.5-75.5T-16-380q0-109 75.5-184.5T244-640h64v80h-64q-75 0-127.5 52.5T64-380q0 75 52.5 127.5T244-200h180v80Z"/></svg> URLコピー</button>
-                        <button id="showQrBtn" class="invite-btn" style="display:none;"><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-200h400v-480H280v480Zm0 120h400v-40H280v40Zm0-680h400v-40H280v40Zm200 620q17 0 28.5-11.5T520-120q0-17-11.5-28.5T480-160q-17 0-28.5 11.5T440-120q0 17 11.5 28.5T480-80ZM280-840v40-40Zm0 760v-40 40Z"/></svg> QR表示</button>
+                        <button id="copyUrlBtn" class="invite-btn" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                                <path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/>
+                            </svg> URLコピー</button>
+                        <button id="showQrBtn" class="invite-btn" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                                <path d="M520-120v-80h80v80h-80Zm-80-80v-200h80v200h-80Zm320-120v-160h80v160h-80Zm-80-160v-80h80v80h-80Zm-480 80v-80h80v80h-80Zm-80-80v-80h80v80h-80Zm360-280v-80h80v80h-80ZM180-660h120v-120H180v120Zm-60 60v-240h240v240H120Zm60 420h120v-120H180v120Zm-60 60v-240h240v240H120Zm540-540h120v-120H660v120Zm-60 60v-240h240v240H600Zm80 480v-120h-80v-80h160v120h80v80H680ZM520-400v-80h160v80H520Zm-160 0v-80h-80v-80h240v80h-80v80h-80Zm40-200v-160h80v80h80v80H400Zm-190-90v-60h60v60h-60Zm0 480v-60h60v60h-60Zm480-480v-60h60v60h-60Z"/>
+                            </svg> QRコード表示
+                        </button>
                     </div>
                 </div>
 
@@ -117,13 +124,20 @@
             
             <div id="envSoundCaption" class="caption-bar"></div>
             <div id="typingIndicator" class="typing-indicator"></div>
-            <div id="selectionPopup"><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M520-200v-520q-33-14-68.5-21T380-748q-43 0-83 11.5T220-702v520q36-22 75.5-33.5T380-227q38 0 74.5 9t65.5 18Zm80 0q29-9 65.5-18t74.5-9q41 0 80.5 11.5T896-702v-520q-36-34-77-45.5T740-748q-36 0-71.5 7t-68.5 21v520Zm-80 100q-43-18-87-27.5T380-137q-48 0-94 10.5T200-96v-572q43-26 89.5-39T380-720q43 0 88 12.5T560-668q47-27 92-39.5T740-720q43 0 89.5 13t89.5 39v572q-40-19-86-29.5T740-137q-54 0-98 9.5T560-100ZM200-200h-40H200Zm716 0h-40 40Z"/></svg> 辞書に登録</div>
+            <div id="selectionPopup">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M160-391h45l23-66h104l24 66h44l-97-258h-46l-97 258Zm81-103 38-107h2l38 107h-78Zm319-70v-68q33-14 67.5-21t72.5-7q26 0 51 4t49 10v64q-24-9-48.5-13.5T700-600q-38 0-73 9.5T560-564Zm0 220v-68q33-14 67.5-21t72.5-7q26 0 51 4t49 10v64q-24-9-48.5-13.5T700-380q-38 0-73 9t-67 27Zm0-110v-68q33-14 67.5-21t72.5-7q26 0 51 4t49 10v64q-24-9-48.5-13.5T700-490q-38 0-73 9.5T560-454Zm-40 176q44-21 88.5-31.5T700-320q36 0 70.5 6t69.5 18v-396q-33-14-68.5-21t-71.5-7q-47 0-93 12t-87 36v394Zm-40 118q-48-38-104-59t-116-21q-42 0-82.5 11T100-198q-21 11-40.5-1T40-234v-482q0-11 5.5-21T62-752q46-24 96-36t102-12q58 0 113.5 15T480-740q51-30 106.5-45T700-800q52 0 102 12t96 36q11 5 16.5 15t5.5 21v482q0 23-19.5 35t-40.5 1q-37-20-77.5-31T700-240q-60 0-116 21t-104 59Z"/>
+                </svg> 辞書に登録
+            </div>
             
             <div id="chatLog" class="chat-textarea" data-placeholder="ここに会話の履歴が表示されます..."></div>
             <div id="sttInterim"></div>
 
             <div class="meter-container">
-                <span class="meter-label"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg> マイク入力：</span>
+                <span class="meter-label">
+                    <svg class="ui-icon" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg> マイク入力：</span>
                 <div class="meter-bar-bg"><div id="volumeMeter" class="meter-bar-fill"></div></div>
             </div>
 
@@ -181,7 +195,11 @@
             <div class="section-title">文字と音声の調整</div>
             <div class="settings-grid">
                 <div class="settings-item">
-                    <label><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M420-200v-80h100v-440H280v160h-80v-240h560v240h-80v-160H560v440h100v80H420Z"/></svg> アプリの文字サイズ</label>
+                    <label>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                            <path d="M560-160v-520H360v-120h520v120H680v520H560Zm-360 0v-320H80v-120h360v120H320v320H200Z"/>
+                        </svg> アプリの文字サイズ
+                    </label>
                     <div class="font-controls">
                         <button class="font-btn" id="fontIncreaseBtn">＋ 大きくする</button>
                         <button class="font-btn" id="fontDecreaseBtn">－ 小さくする</button>
@@ -189,7 +207,11 @@
                     </div>
                 </div>
                 <div class="settings-item">
-                    <label><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-53t97-133q-24 16-52 24.5t-59 8.5q-124 0-211-87t-87-211q0-31 8.5-59t24.5-52q-80 27-133 97t-53 158q0 117 81.5 198.5T480-200Zm-20-260Z"/></svg> ダークモード（ナイトモード）</label>
+                    <label>
+                        <svg class="ui-icon" viewBox="0 -960 960 960">
+                            <path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-53t97-133q-24 16-52 24.5t-59 8.5q-124 0-211-87t-87-211q0-31 8.5-59t24.5-52q-80 27-133 97t-53 158q0 117 81.5 198.5T480-200Zm-20-260Z"/>
+                        </svg> ダークモード（ナイトモード）
+                    </label>
                     <label class="env-toggle" style="display: inline-flex;">
                         <input type="checkbox" id="darkModeToggle"> 暗いテーマを使用する
                     </label>
@@ -199,7 +221,11 @@
                     <select id="voiceSelect"></select>
                 </div>
                 <div class="settings-item">
-                    <label for="rateSlider"><svg class="ui-icon" viewBox="0 -960 960 960"><path d="M500-640q-33 0-56.5-23.5T420-720q0-33 23.5-56.5T500-800q33 0 56.5 23.5T580-720q0 33-23.5 56.5T500-640Zm-20 560v-200l-60-50-100 130v120h-80v-170l144-180-84-40v130h-80v-180l242-108q18-8 35.5-5.5T528-422l62 98q28 44 76.5 69t101.5 25v80q-68 0-128-31.5T540-272l-40 42v150h-80Z"/></svg> 読み上げの速度: <span id="rateValue">1.0</span></label>
+                    <label for="rateSlider">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+                            <path d="M418-340q25 25 63 23.5t55-27.5l224-336-336 224q-26 18-28.5 54.5T418-340ZM204-160q-22 0-40.5-9.5T134-198q-26-47-40-97.5T80-400q0-83 31.5-156T197-683q54-54 127-85.5T480-800q82 0 154 31t126 84.5q54 53.5 86 125T879-406q1 55-12.5 107.5T825-198q-11 19-29.5 28.5T755-160H204Z"/>
+                        </svg> 読み上げの速度: <span id="rateValue">1.0</span>
+                    </label>
                     <input type="range" id="rateSlider" min="0.5" max="2" value="1" step="0.1">
                 </div>
                 <div class="settings-item">
