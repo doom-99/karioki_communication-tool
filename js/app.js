@@ -381,7 +381,7 @@ function initUIEvents() {
     // リセット
     document.getElementById('clearChatBtn').onclick = () => {
         chatMenuDropdown.classList.remove('active'); // ★ メニューを閉じる
-        if(confirm("消去しますか？")) { 
+        if(confirm("現在の会話を消去しますか？")) { 
             window.chatMessages = []; 
             renderAllMessages(); 
             localforage.removeItem('chatMessages'); 
@@ -391,7 +391,7 @@ function initUIEvents() {
     // コピー
     document.getElementById('copyChatBtn').onclick = () => {
         chatMenuDropdown.classList.remove('active'); // ★ メニューを閉じる
-        navigator.clipboard.writeText(messagesToText()).then(() => alert("コピー完了"));
+        navigator.clipboard.writeText(messagesToText()).then(() => alert("会話をコピーしました．"));
     };
 
     // 保存

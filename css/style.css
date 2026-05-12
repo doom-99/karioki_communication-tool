@@ -247,27 +247,25 @@ textarea#ttsInput {
 .dict-item:last-child { border-bottom: none; }
 .dict-delete-btn { background-color: #dc3545; padding: 6px 12px; font-size: 0.85em; border-radius: 6px; }
 .dict-delete-btn:hover { background-color: #c82333; }
-/* ★ 修正: 位置を固定して画面の上に浮かせ、影と丸みをつける */
+/* ★ 修正: absolute から fixed に変更し、画面（ビューポート）に対して固定する */
 #saveToast { 
     display: none; 
-    position: absolute; /* 他の要素を押し下げずに浮かす魔法のプロパティ */
-    top: 20px;          /* モーダルの上端からの距離 */
+    position: fixed;    /* ここを fixed に変更 */
+    top: 40px;          /* 画面の一番上からの距離 */
     left: 50%;          
-    transform: translateX(-50%); /* 左右ど真ん中に配置 */
-    z-index: 3100;      /* 一番手前に表示 */
+    transform: translateX(-50%); 
+    z-index: 9999;      /* モーダルよりもさらに最前面に表示 */
     
     background-color: #198754; 
     color: white; 
     text-align: center; 
     padding: 10px 20px; 
-    border-radius: 30px; /* 丸みをつけてよりポップアップらしく */
+    border-radius: 30px; 
     font-weight: bold; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* 浮遊感を出すための影 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* 前面に出るため影を少し濃く */
     
-    /* アニメーションを少し滑らかに改修 */
     animation: toastPop 2s forwards; 
 }
-
 /* ★ 修正: 上から少しスライドしながら現れるアニメーション */
 @keyframes toastPop { 
     0%   { opacity: 0; transform: translate(-50%, -10px); } 
