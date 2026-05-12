@@ -16,6 +16,7 @@ let workletNode = null;
 let envStream = null;
 let lastCaptionTime = 0;
 let isTtsSpeaking = false; // ★ 追加: 自分の端末が読み上げ中かどうかを判定するフラグ
+let isSettingsInitialized = false; // ★ 追加: 設定画面の多重初期化を防ぐフラグ
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -73,6 +74,9 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
         nameOverlay.style.display = 'none'; 
         myNameInput.value = savedName; // ★ 修正：保存されていた名前を画面の入力欄に反映
     }
+
+    // ★ 追加: 音声合成エンジンを早期に起動させてリスト取得の遅延（空っぽになるバグ）を防ぐ
+    if (window.speechSynthesis) window.speechSynthesis.getVoices();
 
     // ★ 修正: 設定の読み込みが終わるのを待つ
     await loadSettings();
@@ -416,7 +420,7 @@ function initUIEvents() {
     const connectSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M640-80v-90q-56-18-94-64t-44-106h80q8 43 40.5 71.5T700-240h120q25 0 42.5 17.5T880-180v100H640Zm120-200q-33 0-56.5-23.5T680-360q0-33 23.5-56.5T760-440q33 0 56.5 23.5T840-360q0 33-23.5 56.5T760-280ZM360-400q0-150 105-255t255-105v80q-117 0-198.5 81.5T440-400h-80Zm160 0q0-83 58.5-141.5T720-600v80q-50 0-85 35t-35 85h-80ZM80-520v-100q0-25 17.5-42.5T140-680h120q45 0 77.5-28.5T378-780h80q-6 60-44 106t-94 64v90H80Zm120-200q-33 0-56.5-23.5T120-800q0-33 23.5-56.5T200-880q33 0 56.5 23.5T280-800q0 33-23.5 56.5T200-720Z"/></svg></span>`;
     
     const closeSvg = `<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></span>`;
-    
+
     if (menuBtn) {
         // ★変更: ボタンを押した時の処理を「すでに開いていれば閉じ、閉じていれば開く」という条件分岐に変更
         menuBtn.onclick = () => { 
@@ -748,28 +752,40 @@ async function initSettingsLogic() { // ★ async 化
 
     // 現在の値をUIに反映
     disp.textContent = currentFontSize;
-
-    // ★ 修正: localStorage ではなく localforage から取得
     const isDark = await localforage.getItem('darkMode');
     toggle.checked = isDark === true;
-
     rate.value = savedTtsRate;
     pitch.value = savedTtsPitch;
     document.getElementById('rateValue').textContent = savedTtsRate;
     document.getElementById('pitchValue').textContent = savedTtsPitch;
 
     // 音声リスト
+    // ★ 修正: 音声リストの取得バグを防止する堅牢な処理
     async function updateVoices() {
-        const vs = window.speechSynthesis.getVoices().filter(v => v.lang.includes('ja'));
-        sel.innerHTML = vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+        let vs = window.speechSynthesis.getVoices().filter(v => v.lang.includes('ja'));
         
-        // ★ 修正: 音声の選択状態も localforage から取得
-        const savedVoice = await localforage.getItem('ttsVoice');
-        sel.value = savedVoice || "";
+        // まだ準備ができておらずリストが空の場合、0.3秒待ってから再取得する
+        if (vs.length === 0) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            vs = window.speechSynthesis.getVoices().filter(v => v.lang.includes('ja'));
+        }
+
+        if (vs.length > 0) {
+            sel.innerHTML = vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+            const savedVoice = await localforage.getItem('ttsVoice');
+            if (savedVoice) sel.value = savedVoice;
+        } else {
+            // それでもダメな場合は空欄にならず案内を出す
+            sel.innerHTML = '<option value="">(音声を準備中...)</option>';
+        }
     }
     await updateVoices();
     window.speechSynthesis.onvoiceschanged = updateVoices;
 
+    // ★ 追加: イベントリスナーが「開くたびに増殖する」バグを防ぐ
+    if (isSettingsInitialized) return;
+    isSettingsInitialized = true;
+    
     // イベント登録（変更即反映）
     document.getElementById('fontIncreaseBtn').onclick = () => { currentFontSize += 2; saveSet(); };
     document.getElementById('fontDecreaseBtn').onclick = () => { currentFontSize -= 2; saveSet(); };
