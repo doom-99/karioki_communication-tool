@@ -247,8 +247,34 @@ textarea#ttsInput {
 .dict-item:last-child { border-bottom: none; }
 .dict-delete-btn { background-color: #dc3545; padding: 6px 12px; font-size: 0.85em; border-radius: 6px; }
 .dict-delete-btn:hover { background-color: #c82333; }
-#saveToast { display: none; background-color: #198754; color: white; text-align: center; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; animation: fadeOut 3s forwards; }
-@keyframes fadeOut { 0% {opacity: 1;} 70% {opacity: 1;} 100% {opacity: 0; display: none;} }
+/* ★ 修正: 位置を固定して画面の上に浮かせ、影と丸みをつける */
+#saveToast { 
+    display: none; 
+    position: absolute; /* 他の要素を押し下げずに浮かす魔法のプロパティ */
+    top: 20px;          /* モーダルの上端からの距離 */
+    left: 50%;          
+    transform: translateX(-50%); /* 左右ど真ん中に配置 */
+    z-index: 3100;      /* 一番手前に表示 */
+    
+    background-color: #198754; 
+    color: white; 
+    text-align: center; 
+    padding: 10px 20px; 
+    border-radius: 30px; /* 丸みをつけてよりポップアップらしく */
+    font-weight: bold; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* 浮遊感を出すための影 */
+    
+    /* アニメーションを少し滑らかに改修 */
+    animation: toastPop 2s forwards; 
+}
+
+/* ★ 修正: 上から少しスライドしながら現れるアニメーション */
+@keyframes toastPop { 
+    0%   { opacity: 0; transform: translate(-50%, -10px); } 
+    15%  { opacity: 1; transform: translate(-50%, 0); } 
+    85%  { opacity: 1; transform: translate(-50%, 0); } 
+    100% { opacity: 0; transform: translate(-50%, -10px); display: none; } 
+}
 .settings-footer { text-align: center; margin-top: 30px; }
 .close-btn { background-color: #6c757d; }
 .close-btn:hover { background-color: #5a6268; }
