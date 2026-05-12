@@ -526,7 +526,11 @@ function initSelectionPopup() {
 // 他のファイルから呼ばれる指標表示
 window.handleRemoteTyping = function(d) {
     const indicator = document.getElementById('typingIndicator');
-    if (d.isTyping) { indicator.textContent = `🖐️ ${d.name}さんが入力中...`; indicator.style.display = 'block'; }
+    if (d.isTyping) { 
+        // 変更: innerHTMLを使用し、ユーザー名はサニタイズ（安全化）する
+        indicator.innerHTML = `${handIcon} ${escapeHTML(d.name)}さんが入力中...`; 
+        indicator.style.display = 'block'; 
+    }
     else indicator.style.display = 'none';
 };
 
@@ -561,7 +565,8 @@ function startSTT() {
             addMessage(getMyName(), final.trim(), 'stt');
             broadcastData(final.trim());
         }
-        sttInterim.textContent = interim ? "👂: " + interim : "";
+        const earIcon = `<svg class="ui-icon" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-120q-66 0-113-47t-47-113q0-12 1.5-23.5T326-326q12-25 29-45t37-37q20-17 32-35.5t12-40.5q0-25-17.5-42.5T380-544q-25 0-42.5 17.5T320-484h-80q0-58 41-99t99-41q58 0 99 41t41 99q0 40-19.5 73.5T454-356q-16 13-27 28.5t-11 33.5q0 26 18.5 44.5T480-231q26 0 44.5-18.5T543-294q0-13-1-23.5t-5-21.5l75-29q7 16 10 33t3 35q0 75-52.5 127.5T480-120Zm178-264-75-30q14-35 14-72v-34q0-92-64-156t-156-64q-21 0-42 4.5T295-723l-59-57q29-23 63.5-35.5T377-830q117 0 198.5 81.5T657-550v34q0 46-17.5 89T578-384Z"/></svg>`;
+        sttInterim.innerHTML = interim ? `${earIcon} ${escapeHTML(interim)}` : "";
         
         const isAtBottom = chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 50;
         if (isAtBottom && (final || interim)) chatLog.scrollTop = chatLog.scrollHeight;
@@ -730,7 +735,11 @@ function showAudioCaption(t) {
 
 function handleRemoteTyping(d) {
     const indicator = document.getElementById('typingIndicator');
-    if (d.isTyping) { indicator.textContent = `🖐️ ${d.name}さんが入力中...`; indicator.style.display = 'block'; }
+    if (d.isTyping) { 
+        // 変更: innerHTMLを使用し、ユーザー名はサニタイズ（安全化）する
+        indicator.innerHTML = `${handIcon} ${escapeHTML(d.name)}さんが入力中...`; 
+        indicator.style.display = 'block'; 
+    }
     else indicator.style.display = 'none';
 }
 
