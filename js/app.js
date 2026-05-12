@@ -575,7 +575,7 @@ function startSTT() {
             addMessage(getMyName(), final.trim(), 'stt');
             broadcastData(final.trim());
         }
-        const earIcon = `<svg class="ui-icon" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-120q-66 0-113-47t-47-113q0-12 1.5-23.5T326-326q12-25 29-45t37-37q20-17 32-35.5t12-40.5q0-25-17.5-42.5T380-544q-25 0-42.5 17.5T320-484h-80q0-58 41-99t99-41q58 0 99 41t41 99q0 40-19.5 73.5T454-356q-16 13-27 28.5t-11 33.5q0 26 18.5 44.5T480-231q26 0 44.5-18.5T543-294q0-13-1-23.5t-5-21.5l75-29q7 16 10 33t3 35q0 75-52.5 127.5T480-120Zm178-264-75-30q14-35 14-72v-34q0-92-64-156t-156-64q-21 0-42 4.5T295-723l-59-57q29-23 63.5-35.5T377-830q117 0 198.5 81.5T657-550v34q0 46-17.5 89T578-384Z"/></svg>`;
+        const earIcon = `<svg class="ui-icon" viewBox="0 -960 960 960"><path d="M240-80q62 0 101.5-31t60.5-91q17-50 32.5-70t71.5-64q62-50 98-113t36-151q0-119-80.5-199.5T360-880q-119 0-199.5 80.5T80-600h80q0-85 57.5-142.5T360-800q85 0 142.5 57.5T560-600q0 68-27 116t-77 86q-52 38-81 74t-43 78q-14 44-33.5 65T240-160q-33 0-56.5-23.5T160-240H80q0 66 47 113t113 47Zm191-449.5q29-29.5 29-70.5 0-42-29-71t-71-29q-42 0-71 29t-29 71q0 41 29 70.5t71 29.5q42 0 71-29.5ZM740-379l-59-59q19-37 29-77.5t10-84.5q0-44-10-84t-29-77l59-59q29 49 44.5 104.5T800-600q0 61-15.5 116.5T740-379Zm117 116-59-58q39-60 60.5-130T880-598q0-78-21.5-148.5T797-877l60-60q49 72 76 157.5T960-600q0 94-27 179.5T857-263Z"/></svg>`;
         sttInterim.innerHTML = interim ? `${earIcon} ${escapeHTML(interim)}` : "";
         
         const isAtBottom = chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight < 50;
@@ -785,7 +785,7 @@ async function initSettingsLogic() { // ★ async 化
     // ★ 追加: イベントリスナーが「開くたびに増殖する」バグを防ぐ
     if (isSettingsInitialized) return;
     isSettingsInitialized = true;
-    
+
     // イベント登録（変更即反映）
     document.getElementById('fontIncreaseBtn').onclick = () => { currentFontSize += 2; saveSet(); };
     document.getElementById('fontDecreaseBtn').onclick = () => { currentFontSize -= 2; saveSet(); };
