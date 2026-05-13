@@ -556,13 +556,20 @@ function startSTT() {
     recognition.onstart = () => { isApiActive = true; clearTimeout(restartTimer); restartTimer = null; };
 
     recognition.onresult = (e) => {
-        // ★ 追加: 自分が読み上げている最中の音声は拾わずにすべて破棄する（エコー防止）
+        // 自分が読み上げている最中の音声は拾わずにすべて破棄する（エコー防止）
         if (isTtsSpeaking) return;
 
         let interim = ''; let final = '';
         for (let i = e.resultIndex; i < e.results.length; ++i) {
-            if (e.results[i].isFinal) final += e.results[i][0].transcript + '．\n\n';
-            else interim += e.results[i][0].transcript;
+            // ★ 追加: まず認識結果の前後から不要な空白を取り除く
+            const transcript = e.results[i][0].transcript.trim();
+            
+            // ★ 追加: 無音や環境ノイズによる「空っぽの文字列」だった場合は、処理をスキップ（ピリオド連打を防止）
+            if (!transcript) continue;
+
+            // ★ 変更: 検証済みの transcript を使うように修正
+            if (e.results[i].isFinal) final += transcript + '．\n\n';
+            else interim += transcript;
         }
         
         final = applyDictionary(final);
