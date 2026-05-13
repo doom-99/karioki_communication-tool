@@ -7,6 +7,7 @@ let customDictionary = {};
 let currentFontSize = 14;
 let savedTtsRate = 1.0;
 let savedTtsPitch = 1.0;
+let isTtsEnabled = true; // ★ 追加: 読み上げのオン・オフを管理する変数（デフォルトはオン）
 
 // YAMNet関連
 let isEnvSoundActive = false;
@@ -172,6 +173,10 @@ async function loadSettings() {
     currentFontSize = parseInt(await localforage.getItem('appFontSize')) || 14;
     savedTtsRate = parseFloat(await localforage.getItem('ttsRate')) || 1.0;
     savedTtsPitch = parseFloat(await localforage.getItem('ttsPitch')) || 1.0;
+    
+    // ★ 追加: 保存された設定を読み込む（初めて使う時＝保存データがない時は true にする）
+    const storedTtsEnabled = await localforage.getItem('ttsEnabled');
+    isTtsEnabled = storedTtsEnabled === null ? true : storedTtsEnabled;
     
     document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
     
@@ -649,10 +654,12 @@ function speakAndLog() {
     addMessage(getMyName(), text, 'tts');
     broadcastData(text);
 
-    // ★ 変更: テキストを空にした直後に、高さをリセットする処理を追加
     ttsInput.value = ''; 
     ttsInput.style.height = 'auto'; 
     ttsInput.blur();
+
+    // ★ 追加: 設定がオフの場合は、ここで処理を終了して読み上げを実行しない
+    if (!isTtsEnabled) return;
 
     const chunks = text.match(/.*?[、。，．！？\n\s]+|.{1,25}/g) || [text];
     let idx = 0; let offset = 0;
@@ -758,6 +765,7 @@ function showAudioCaption(t) {
 async function initSettingsLogic() { // ★ async 化
     const disp = document.getElementById('currentFontSizeDisplay');
     const toggle = document.getElementById('darkModeToggle');
+    const ttsToggle = document.getElementById('ttsEnableToggle'); // ★ 追加: スイッチの取得
     const sel = document.getElementById('voiceSelect');
     const rate = document.getElementById('rateSlider');
     const pitch = document.getElementById('pitchSlider');
@@ -766,6 +774,7 @@ async function initSettingsLogic() { // ★ async 化
     disp.textContent = currentFontSize;
     const isDark = await localforage.getItem('darkMode');
     toggle.checked = isDark === true;
+    ttsToggle.checked = isTtsEnabled; // ★ 追加: スイッチに現在の状態を反映
     rate.value = savedTtsRate;
     pitch.value = savedTtsPitch;
     document.getElementById('rateValue').textContent = savedTtsRate;
@@ -799,6 +808,13 @@ async function initSettingsLogic() { // ★ async 化
     isSettingsInitialized = true;
 
     // イベント登録（変更即反映）
+    // ★ 追加: スイッチが切り替えられた瞬間に設定を保存する
+    ttsToggle.onchange = () => {
+        isTtsEnabled = ttsToggle.checked;
+        localforage.setItem('ttsEnabled', isTtsEnabled);
+        showSetToast();
+    };
+
     document.getElementById('fontIncreaseBtn').onclick = () => { currentFontSize += 2; saveSet(); };
     document.getElementById('fontDecreaseBtn').onclick = () => { currentFontSize -= 2; saveSet(); };
     
