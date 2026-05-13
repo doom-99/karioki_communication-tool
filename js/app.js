@@ -656,7 +656,8 @@ function speakAndLog() {
 
     ttsInput.value = ''; 
     ttsInput.style.height = 'auto'; 
-    ttsInput.blur();
+    // 確実にカーソルを入力欄に戻す（維持する）処理に変更します
+    ttsInput.focus();
 
     // ★ 追加: 設定がオフの場合は、ここで処理を終了して読み上げを実行しない
     if (!isTtsEnabled) return;
