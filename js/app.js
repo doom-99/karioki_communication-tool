@@ -158,11 +158,13 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
     // Enterキーでも決定できるように
     initialInput.onkeydown = (e) => { if(e.key === 'Enter') entryBtn.click(); };
 
-    // ★追加: 通信パネル（左ドロワー）で名前を変更した時にも、新しい名前を保存する
+    // 通信パネル（左ドロワー）で名前を変更した時にも、新しい名前を保存する
     myNameInput.addEventListener('input', async () => {
         const newName = myNameInput.value.trim();
         if (newName) {
             await localforage.setItem('myDisplayName', newName);
+            // ★ 追加: 名前が変わったことを直ちに通信相手に知らせる
+            if (window.notifyNameChange) window.notifyNameChange();
         }
     });
 });
@@ -433,7 +435,7 @@ function initUIEvents() {
                 panel.classList.remove('active'); 
                 overlay.classList.remove('active');
                 // 変更: アイコン付きに戻す
-                menuBtn.innerHTML = connectSvg + '<span class="text">通信設定</span>';
+                menuBtn.innerHTML = connectSvg + '<span class="text">通信機能</span>';
             } else {
                 // 閉じている状態なら開く
                 panel.classList.add('active'); 
@@ -445,7 +447,7 @@ function initUIEvents() {
         overlay.onclick = () => { 
             panel.classList.remove('active'); 
             overlay.classList.remove('active');
-            menuBtn.innerHTML = connectSvg + '<span class="text">通信設定</span>';
+            menuBtn.innerHTML = connectSvg + '<span class="text">通信機能</span>';
         };
     }
 

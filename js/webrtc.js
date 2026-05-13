@@ -199,6 +199,12 @@ function setupConnection(conn) {
         if (!connections.includes(conn)) connections.push(conn);
         updateSyncStatusUI();
         
+        // ★ 追加: 接続した直後に、自分の名前を相手に教える（自己紹介）
+        setTimeout(() => {
+            const myName = window.getMyName ? window.getMyName() : '名無し';
+            try { conn.send({ type: 'hello', name: myName }); } catch(e){}
+        }, 500);
+
         // ★ 修正: ホスト側の無条件送信を削除し、ゲストからのリクエストに応答する形に一本化（二重送信の防止）
         setTimeout(() => {
             if (!isRoomHost) {
@@ -210,6 +216,20 @@ function setupConnection(conn) {
 
     conn.on('data', (data) => {
         const myCurrentName = getMyName() === '名無し' ? 'あなた' : getMyName();
+
+        // ★ 追加: 自己紹介を受け取り、ホストなら全員に名簿を配る
+        if (data.type === 'hello') {
+            conn.remoteName = data.name;
+            if (isRoomHost) {
+                broadcastParticipantList();
+            } else {
+                renderParticipantList([myCurrentName, data.name]); // ゲスト用の仮表示
+            }
+        }
+        // ★ 追加: ホストから届いた完成済みの名簿（リスト）を受け取る
+        else if (data.type === 'participant_list') {
+            if (!isRoomHost) renderParticipantList(data.list);
+        }
 
         if (data.type === 'text') {
             // 受信したメッセージは「remote」として扱う
@@ -263,6 +283,7 @@ function setupConnection(conn) {
     conn.on('close', () => {
         connections = connections.filter(c => c !== conn);
         updateSyncStatusUI();
+        if (isRoomHost) broadcastParticipantList(); // ★ 追加: 誰かが抜けたらリストを更新
     });
 
     // ★追加: 接続ごとの個別エラーをキャッチし、永遠に固まるのを防ぐ
@@ -272,6 +293,7 @@ function setupConnection(conn) {
         connections = connections.filter(c => c !== conn);
         updateSyncStatusUI();
         document.getElementById('syncStatus').innerHTML = `<span style="color:#f44336;">接続が切断されました（エラー）</span>`;
+        if (isRoomHost) broadcastParticipantList(); // ★ 追加: 誰かが抜けたらリストを更新
     });
 }
 
@@ -309,3 +331,54 @@ function broadcastTypingState(isTyping) {
         }
     });
 }
+
+// ★ 追加: UIに参加者リストを描画する関数
+function renderParticipantList(list) {
+    const ul = document.getElementById('participantList');
+    if (!list || list.length === 0 || connections.length === 0) {
+        ul.innerHTML = `<li style="color: #666;">（自分のみ）</li>`;
+        return;
+    }
+    
+    ul.innerHTML = '';
+    const myName = window.getMyName ? window.getMyName() : 'あなた';
+    
+    // 自分を一番上に緑色で表示
+    ul.innerHTML += `<li><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#4caf50; margin-right:6px;"></span>${escapeHTML(myName)} <span style="font-size:0.85em; color:#666;">(あなた)</span></li>`;
+    
+    // 他の参加者を青色で表示
+    list.forEach(name => {
+        if (name !== myName) {
+            ul.innerHTML += `<li><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0d6efd; margin-right:6px;"></span>${escapeHTML(name)}</li>`;
+        }
+    });
+}
+
+// ★ 追加: ホストが全員のリストをまとめて配る関数
+function broadcastParticipantList() {
+    if (!isRoomHost) return;
+    
+    const list = connections.filter(c => c.open).map(c => c.remoteName || '名無し');
+    const myName = window.getMyName ? window.getMyName() : '名無し';
+    list.push(myName);
+    
+    const uniqueList = [...new Set(list)]; // 重複を排除
+    
+    connections.forEach(conn => {
+        if (conn.open) {
+            try { conn.send({ type: 'participant_list', list: uniqueList }); } catch(e){}
+        }
+    });
+    renderParticipantList(uniqueList);
+}
+
+// ★ 追加: 自分の名前が変わった時に呼び出される自己紹介関数
+window.notifyNameChange = function() {
+    const myName = window.getMyName ? window.getMyName() : '名無し';
+    connections.forEach(conn => {
+        if (conn.open) {
+            try { conn.send({ type: 'hello', name: myName }); } catch(e){}
+        }
+    });
+    if (isRoomHost) broadcastParticipantList();
+};
