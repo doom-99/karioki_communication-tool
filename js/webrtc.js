@@ -202,16 +202,9 @@ function setupConnection(conn) {
         if (!connections.includes(conn)) connections.push(conn);
         updateSyncStatusUI();
         
-        // ★ 修正: 接続が完全に安定するまで1秒待ってから履歴をやり取りする
+        // ★ 修正: ホスト側の無条件送信を削除し、ゲストからのリクエストに応答する形に一本化（二重送信の防止）
         setTimeout(() => {
-            if (isRoomHost) {
-                console.log("ホストとして履歴を送信します:", window.chatMessages.length, "件");
-                conn.send({ 
-                    type: 'history', 
-                    messages: window.chatMessages, 
-                    isHost: true 
-                });
-            } else {
+            if (!isRoomHost) {
                 console.log("ゲストとして履歴を要求します...");
                 conn.send({ type: 'request_history' });
             }

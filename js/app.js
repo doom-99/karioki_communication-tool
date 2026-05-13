@@ -133,22 +133,22 @@ window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
     }
 
     // 2. 「会話を始める/参加する」ボタンが押された時の処理
-    entryBtn.onclick = async () => {
+    // ★ 修正: async と await を外し、Safariの「ユーザー操作によるマイク起動」の権限を維持する
+    entryBtn.onclick = () => {
         const inputName = initialInput.value.trim();
         if (!inputName) {
             alert('名前を入力してください．．');
             return;
         }
 
-        await localforage.setItem('myDisplayName', inputName);
+        // 保存は裏側で走らせておく（awaitで待たない）
+        localforage.setItem('myDisplayName', inputName);
         myNameInput.value = inputName;
         
         nameOverlay.style.transition = "opacity 0.3s ease";
         nameOverlay.style.opacity = "0";
         setTimeout(() => nameOverlay.style.display = 'none', 300);
 
-        // ★ 追加: 招待URLから来た場合、ドロワーを開かずに裏側で「接続する」ボタンを自動で押す
-        // これにより、Safariの「ユーザー操作要求」をクリアしたまま接続プロセスに移行できます
         if (inviteId) {
             document.getElementById('connectBtn').click();
         }
@@ -190,15 +190,6 @@ window.addMessage = function(name, text, type) {
     const msgObj = { name, text, type };
     window.chatMessages.push(msgObj);
     appendMessageToDOM(msgObj, index);
-    saveMessages();
-};
-
-window.syncHistory = function(messages) {
-    const myName = window.getMyName();
-    window.chatMessages = (messages || []).map(m => {
-        return m.name !== myName ? { name: m.name, text: m.text, type: 'remote' } : m;
-    });
-    renderAllMessages();
     saveMessages();
 };
 
@@ -442,8 +433,7 @@ function initUIEvents() {
                 // 閉じている状態なら開く
                 panel.classList.add('active'); 
                 overlay.classList.add('active'); 
-                panel.open = true; 
-                // 変更: 閉じるアイコンに切り替え
+                // ★ 修正: panel.open = true; は details 要素ではなくなったので削除
                 menuBtn.innerHTML = closeSvg + '<span class="text">閉じる</span>';
             }
         };
