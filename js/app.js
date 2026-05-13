@@ -133,9 +133,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     initUIEvents();
     initSelectionPopup();
 
-    // ★ 変更: ページ読み込み時に招待URLか判定し、ボタンの文字を自然に変える
-    const urlParams = new URLSearchParams(window.location.search);
-    const inviteId = urlParams.get('room');
     if (inviteId) {
         entryBtn.textContent = "会話に参加する";
         document.getElementById('targetPeerId').value = inviteId; // 事前にIDをセットしておく
