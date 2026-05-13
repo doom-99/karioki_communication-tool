@@ -58,25 +58,33 @@ function getColorForName(name) {
 let chatLog, sttInterim, ttsInput;
 
 // --- 初期化 ---
-window.addEventListener('DOMContentLoaded', async () => { // ★ async を追加
+window.addEventListener('DOMContentLoaded', async () => { 
     chatLog = document.getElementById('chatLog');
     sttInterim = document.getElementById('sttInterim');
     ttsInput = document.getElementById('ttsInput');
 
-    // ★ 変更：名前入力に関連する要素を先に取得
     const nameOverlay = document.getElementById('nameEntryOverlay');
     const initialInput = document.getElementById('initialNameInput');
     const entryBtn = document.getElementById('entryBtn');
     const myNameInput = document.getElementById('myNameInput');
 
-    // ★ 推奨：Peer通信や設定読み込みよりも前に、まず名前を確定させる
+    // ★ 追加: 記憶された名前の処理よりも前に、まず招待URLかどうかを判定する
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteId = urlParams.get('room');
+
+    // ★ 修正: 記憶された名前の復元と、画面スキップの条件分岐
     const savedName = await localforage.getItem('myDisplayName');
     if (savedName && savedName !== '名無し') {
-        nameOverlay.style.display = 'none'; 
-        myNameInput.value = savedName; // ★ 修正：保存されていた名前を画面の入力欄に反映
+        myNameInput.value = savedName;
+        initialInput.value = savedName; // 画面中央の入力欄にも記憶した名前をセットしておく
+        
+        // ★ 追加: 招待URLから来た場合は、Safariの通信制限を突破する「ユーザーのタップ操作」を
+        // 確実に獲得するため、あえて最初の画面をスキップせずに「参加ボタン」を押してもらう
+        if (!inviteId) {
+            nameOverlay.style.display = 'none'; 
+        }
     }
 
-    // ★ 追加: 音声合成エンジンを早期に起動させてリスト取得の遅延（空っぽになるバグ）を防ぐ
     if (window.speechSynthesis) window.speechSynthesis.getVoices();
 
     // ★ 修正: 設定の読み込みが終わるのを待つ
