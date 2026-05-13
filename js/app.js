@@ -1,3 +1,17 @@
+// ★ 追加: デバッグログを画面に出力するハック
+const debugConsole = document.getElementById('debugConsole');
+['log', 'warn', 'error'].forEach(method => {
+    const original = console[method];
+    console[method] = function(...args) {
+        original.apply(console, args);
+        if (!debugConsole) return;
+        const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+        const color = method === 'error' ? '#ff4444' : method === 'warn' ? '#ffbb33' : '#00C851';
+        debugConsole.innerHTML += `<div style="color:${color}; margin-bottom:2px;">[${method}] ${escapeHTML(msg)}</div>`;
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+    };
+});
+
 // --- グローバル変数 (windowに紐付けて共有可能にする) ---
 window.chatMessages = [];
 let isUserListening = false;
@@ -609,11 +623,19 @@ function scheduleRestart(delay = 600) {
     }, delay);
 }
 
+// --- 音声認識 (STT) 停止処理 ---
 function stopSTT() { 
-    if(recognition) recognition.stop(); 
+    if(recognition) {
+        // ★ 修正: 既に停止済みの際に発生するエラーを無視する保護回路
+        try { 
+            recognition.stop(); 
+        } catch(e) { 
+            console.warn("STT停止エラー回避:", e); 
+        }
+    }
     clearTimeout(restartTimer);
     restartTimer = null;
-    sttInterim.textContent = ""; 
+    sttInterim.innerHTML = ""; // 修正: textContent から innerHTML に統一
 }
 
 function applyDictionary(t) {

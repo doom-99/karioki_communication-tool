@@ -1,5 +1,5 @@
 // ★ バージョン名を変更してキャッシュを更新させる
-const CACHE_NAME = 'comm-tool-cache-v24';
+const CACHE_NAME = 'comm-tool-cache-v32';
 
 // ★ 外部のライブラリやフォントもすべてキャッシュのリストに加える
 const urlsToCache = [
@@ -47,11 +47,23 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+// ★ 修正: Stale-While-Revalidate 戦略による完全なオフライン対応と自動アップデートの両立
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                return response || fetch(event.request);
-            })
+        caches.match(event.request).then((cachedResponse) => {
+            // 裏側でネットワークから最新版を取得し、キャッシュを上書きする処理
+            const fetchPromise = fetch(event.request).then((networkResponse) => {
+                caches.open(CACHE_NAME).then((cache) => {
+                    // 次回アクセスのために最新版を保存しておく
+                    cache.put(event.request, networkResponse.clone());
+                });
+                return networkResponse;
+            }).catch(() => {
+                // オフライン時は何もしない（エラーを出さない）
+            });
+
+            // キャッシュがあれば一瞬で画面に表示し、なければネットワーク取得を待つ
+            return cachedResponse || fetchPromise;
+        })
     );
 });
