@@ -568,7 +568,7 @@ function startSTT() {
             if (!transcript) continue;
 
             // ★ 変更: 検証済みの transcript を使うように修正
-            if (e.results[i].isFinal) final += transcript + '．\n\n';
+            if (e.results[i].isFinal) final += transcript + '\n\n';
             else interim += transcript;
         }
         
