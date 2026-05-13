@@ -193,11 +193,8 @@ function setupInviteButtons() {
 
 function setupConnection(conn) {
     conn.on('open', () => {
-        // ★追加: 接続に成功したらタイムアウトのタイマーを止める
+        // 接続に成功したらタイムアウトのタイマーを止める
         if (connectionAttemptTimer) clearTimeout(connectionAttemptTimer);
-
-        // ★ 追加: 接続が開いた直後にもエンジンを維持させる
-        wakeUpSafariMediaEngine();
 
         if (!connections.includes(conn)) connections.push(conn);
         updateSyncStatusUI();
@@ -236,8 +233,8 @@ function setupConnection(conn) {
         }
         else if (data.type === 'history') {
             if (data.isHost) {
-                // ホストからの履歴同期時：自分の名前以外のメッセージはすべて remote に書き換える
-                chatMessages = (data.messages || []).map(m => {
+                // ★ 修正: window. を明記して、確実にグローバル変数を上書きする
+                window.chatMessages = (data.messages || []).map(m => {
                     if (m.name !== myCurrentName) {
                         return { name: m.name, text: m.text, type: 'remote' };
                     }
