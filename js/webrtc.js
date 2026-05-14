@@ -405,22 +405,20 @@ function renderParticipantList(list) {
     });
 }
 
-// ★ 追加: ホストが全員のリストをまとめて配る関数
+// ホストが全員のリストをまとめて配る関数
 function broadcastParticipantList() {
     if (!isRoomHost) return;
     
     const list = connections.filter(c => c.open).map(c => c.remoteName || '名無し');
     const myName = window.getMyName ? window.getMyName() : '名無し';
     list.push(myName);
-    
-    const uniqueList = [...new Set(list)]; // 重複を排除
-    
+        
     connections.forEach(conn => {
         if (conn.open) {
-            try { conn.send({ type: 'participant_list', list: uniqueList }); } catch(e){}
+            try { conn.send({ type: 'participant_list', list: list }); } catch(e){}
         }
     });
-    renderParticipantList(uniqueList);
+    renderParticipantList(list);
 }
 
 // ★ 追加: 自分の名前が変わった時に呼び出される自己紹介関数

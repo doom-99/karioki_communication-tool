@@ -954,3 +954,20 @@ function showSetToast() {
     t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 2000);
 }
+
+// ★ 追加: アプリが裏に回った（バックグラウンドになった）時のマイク制御（暴走・バッテリー消費防止）
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // 画面が隠れたら、もし聞き取り中であれば一時的に停止し、再起動ループも確実に止める
+        if (isUserListening && recognition) {
+            try { recognition.stop(); } catch(e) {}
+            clearTimeout(restartTimer);
+            restartTimer = null;
+        }
+    } else {
+        // 画面に戻ってきた時、聞き取りボタンがオンのままなら安全に再起動する
+        if (isUserListening && !isApiActive) {
+            startSTT();
+        }
+    }
+});
