@@ -18,6 +18,7 @@ let envStream = null;
 let lastCaptionTime = 0;
 let isTtsSpeaking = false; // ★ 追加: 自分の端末が読み上げ中かどうかを判定するフラグ
 let isSettingsInitialized = false; // ★ 追加: 設定画面の多重初期化を防ぐフラグ
+let currentSpeakSession = 0; // ★ 追加: 読み上げの「世代」を管理するID
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -681,24 +682,35 @@ function speakAndLog() {
 
     ttsInput.value = ''; 
     ttsInput.style.height = 'auto'; 
-    // 確実にカーソルを入力欄に戻す（維持する）処理に変更します
     ttsInput.focus();
 
-    // ★ 追加: 設定がオフの場合は、ここで処理を終了して読み上げを実行しない
     if (!isTtsEnabled) return;
+
+    // ★ 修正1: 新しいメッセージが送られたら、古い読み上げを即座にキャンセルする
+    window.speechSynthesis.cancel();
+    renderAllMessages(); // ハイライトが残るのを防ぐため画面を一旦リセット
+    speakingQueueCount = 0;
+    
+    // ★ 修正2: セッションIDを更新し、この読み上げ処理だけの固有のIDを持たせる
+    currentSpeakSession++; 
+    const mySession = currentSpeakSession;
 
     const chunks = text.match(/.*?[、。，．！？\n\s]+|.{1,25}/g) || [text];
     let idx = 0; let offset = 0;
 
-    // ★ 追加: 再生キューに入るタイミングでフラグをオンにする
+    // ★ 修正3: メッセージが追加された「この瞬間の」インデックス番号を固定で記憶する
+    const myMsgIndex = window.chatMessages.length - 1;
+
     isTtsSpeaking = true;
     
     function play() {
+        // ★ 修正4: 別のメッセージ送信によってセッションIDが切り替わっていたら、このループを完全に終了させる
+        if (mySession !== currentSpeakSession) return;
+
         if (idx >= chunks.length) { 
             speakingQueueCount--; 
             if(speakingQueueCount<=0) {
                 renderAllMessages(); 
-                // ★ 追加: 全ての文節を読み終わったらフラグをオフにし、マイクの耳を開ける
                 isTtsSpeaking = false;
             }
             return; 
@@ -713,15 +725,25 @@ function speakAndLog() {
         }
 
         uttr.onstart = () => {
+            if (mySession !== currentSpeakSession) return; // 念のためのガード
             if (idx === 0) speakingQueueCount++;
-            const el = chatLog.querySelector(`.msg-bubble[data-index="${chatMessages.length-1}"] .msg-text`);
+            
+            // ★ 修正5: 常に固定された正しい吹き出し（myMsgIndex）に対してハイライトを当てる
+            const el = chatLog.querySelector(`.msg-bubble[data-index="${myMsgIndex}"] .msg-text`);
             if (el) {
                 const chunk = chunks[idx];
                 el.innerHTML = escapeHTML(text.slice(0, offset)) + `<span class="tts-highlight-word">${escapeHTML(chunk)}</span>` + escapeHTML(text.slice(offset + chunk.length));
             }
         };
-        uttr.onend = () => { offset += chunks[idx].length; idx++; play(); };
-        uttr.onerror = () => { offset += chunks[idx].length; idx++; play(); };
+        uttr.onend = () => { 
+            if (mySession !== currentSpeakSession) return;
+            offset += chunks[idx].length; idx++; play(); 
+        };
+        uttr.onerror = (e) => { 
+            // キャンセルされた時やセッション切れの時は、次の文節を読まない（ループ脱出）
+            if (e.error === 'canceled' || e.error === 'interrupted' || mySession !== currentSpeakSession) return;
+            offset += chunks[idx].length; idx++; play(); 
+        };
         
         setTimeout(() => window.speechSynthesis.speak(uttr), 10);
     }
