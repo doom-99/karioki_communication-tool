@@ -3,10 +3,14 @@ let connections = [];
 let isRoomHost = true; // デフォルトはホスト
 let activeRoomId = null; // ★ 追加: 現在参加している「大元のホスト」のIDを記憶する変数
 
-// ★ 追加: iOS Safariの「データ専用通信のサボり」を防ぐためのダミー音声生成ハック
+// ★ 修正: iOS Safariの「データ専用通信のサボり」を防ぐためのダミー音声生成ハック
 function wakeUpSafariMediaEngine() {
-    // iPhoneやスマホの場合のみ実行
-    if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) return;
+    // ★ 修正: iPadの「Mac偽装」を見破るためのタッチポイント判定を追加
+    const isMobileOrApple = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
+                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                            
+    if (!isMobileOrApple) return;
+    
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioCtx();
@@ -111,9 +115,11 @@ function initWebRTC() {
             setupInviteButtons(); 
             document.getElementById('syncStatus').innerHTML = `<span style="color:#0d6efd;">接続を準備中...</span>`;
 
-            // ★ 追加: SafariのWebRTCブロックを粉砕する「マイク一瞬起動ハック」の自動化
-            // ユーザーがボタンをタップした瞬間に実行することで、Safariの通信エンジンが100%覚醒します
-            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            // ★ 修正: こちらもiPadの「Mac偽装」を見破る判定を追加し、確実にマイク一瞬起動ハックを実行する
+            const isStrictApple = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            
+            if (isStrictApple) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     // エンジンを起こすのが目的なので、即座にストリームを停止してマイクをオフにする
