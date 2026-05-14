@@ -16,9 +16,10 @@ let envAudioContext = null;
 let workletNode = null;
 let envStream = null;
 let lastCaptionTime = 0;
-let isTtsSpeaking = false; // ★ 追加: 自分の端末が読み上げ中かどうかを判定するフラグ
-let isSettingsInitialized = false; // ★ 追加: 設定画面の多重初期化を防ぐフラグ
-let currentSpeakSession = 0; // ★ 追加: 読み上げの「世代」を管理するID
+let isTtsSpeaking = false; // 自分の端末が読み上げ中かどうかを判定するフラグ
+let isSettingsInitialized = false; // 設定画面の多重初期化を防ぐフラグ
+let ttsQueue = []; // 読み上げ待ちのテキストを並べておく行列
+let isTtsProcessing = false; // 現在キューを処理（読み上げ）中かどうか
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -686,37 +687,54 @@ function speakAndLog() {
 
     if (!isTtsEnabled) return;
 
-    // ★ 修正1: 新しいメッセージが送られたら、古い読み上げを即座にキャンセルする
-    window.speechSynthesis.cancel();
-    renderAllMessages(); // ハイライトが残るのを防ぐため画面を一旦リセット
-    speakingQueueCount = 0;
-    
-    // ★ 修正2: セッションIDを更新し、この読み上げ処理だけの固有のIDを持たせる
-    currentSpeakSession++; 
-    const mySession = currentSpeakSession;
-
-    const chunks = text.match(/.*?[、。，．！？\n\s]+|.{1,25}/g) || [text];
-    let idx = 0; let offset = 0;
-
-    // ★ 修正3: メッセージが追加された「この瞬間の」インデックス番号を固定で記憶する
+    // ★ 修正: 送信されたメッセージのインデックス番号を記録
     const myMsgIndex = window.chatMessages.length - 1;
 
-    isTtsSpeaking = true;
-    
-    function play() {
-        // ★ 修正4: 別のメッセージ送信によってセッションIDが切り替わっていたら、このループを完全に終了させる
-        if (mySession !== currentSpeakSession) return;
+    // ★ 修正: 読み上げる内容と対象の吹き出し番号を「待ち行列（キュー）」に追加する
+    ttsQueue.push({ text: text, index: myMsgIndex });
 
+    // もし現在読み上げ作業が止まっていれば、処理をスタートさせる
+    if (!isTtsProcessing) {
+        processTtsQueue();
+    }
+}
+
+// ★ 追加: キュー（待ち行列）を順番に処理していく専用の関数
+function processTtsQueue() {
+    // 待ち行列が空っぽなら、処理を完全に終了して画面のハイライトをリセットする
+    if (ttsQueue.length === 0) {
+        isTtsProcessing = false;
+        isTtsSpeaking = false;
+        renderAllMessages(); 
+        return;
+    }
+
+    isTtsProcessing = true;
+    isTtsSpeaking = true;
+
+    // 行列の先頭から1つタスクを取り出す
+    const currentTask = ttsQueue.shift();
+    const text = currentTask.text;
+    const targetIndex = currentTask.index;
+
+    // 読み上げ前に画面をリセット（前のハイライトを消す）
+    renderAllMessages();
+
+    const chunks = text.match(/.*?[、。，．！？\n\s]+|.{1,25}/g) || [text];
+    let idx = 0; 
+    let offset = 0;
+
+    function playNextChunk() {
         if (idx >= chunks.length) { 
-            speakingQueueCount--; 
-            if(speakingQueueCount<=0) {
-                renderAllMessages(); 
-                isTtsSpeaking = false;
-            }
+            // 1つのメッセージを最後まで読み終わったら、次の行列の処理へ移る
+            processTtsQueue();
             return; 
         }
+
         const uttr = new SpeechSynthesisUtterance(chunks[idx]);
-        uttr.lang = 'ja-JP'; uttr.rate = savedTtsRate; uttr.pitch = savedTtsPitch;
+        uttr.lang = 'ja-JP'; 
+        uttr.rate = savedTtsRate; 
+        uttr.pitch = savedTtsPitch;
         
         const savedVoice = localStorage.getItem('ttsVoice');
         if (savedVoice) {
@@ -725,29 +743,29 @@ function speakAndLog() {
         }
 
         uttr.onstart = () => {
-            if (mySession !== currentSpeakSession) return; // 念のためのガード
-            if (idx === 0) speakingQueueCount++;
-            
-            // ★ 修正5: 常に固定された正しい吹き出し（myMsgIndex）に対してハイライトを当てる
-            const el = chatLog.querySelector(`.msg-bubble[data-index="${myMsgIndex}"] .msg-text`);
+            // 現在処理中の正しい吹き出しに対してのみハイライトを当てる
+            const el = chatLog.querySelector(`.msg-bubble[data-index="${targetIndex}"] .msg-text`);
             if (el) {
                 const chunk = chunks[idx];
                 el.innerHTML = escapeHTML(text.slice(0, offset)) + `<span class="tts-highlight-word">${escapeHTML(chunk)}</span>` + escapeHTML(text.slice(offset + chunk.length));
             }
         };
         uttr.onend = () => { 
-            if (mySession !== currentSpeakSession) return;
-            offset += chunks[idx].length; idx++; play(); 
+            offset += chunks[idx].length; 
+            idx++; 
+            playNextChunk(); // 次の文節へ
         };
         uttr.onerror = (e) => { 
-            // キャンセルされた時やセッション切れの時は、次の文節を読まない（ループ脱出）
-            if (e.error === 'canceled' || e.error === 'interrupted' || mySession !== currentSpeakSession) return;
-            offset += chunks[idx].length; idx++; play(); 
+            console.warn("TTS Error:", e);
+            offset += chunks[idx].length; 
+            idx++; 
+            playNextChunk(); // エラーが起きても止まらずに次へ進む
         };
         
         setTimeout(() => window.speechSynthesis.speak(uttr), 10);
     }
-    play();
+    
+    playNextChunk();
 }
 
 // --- 環境音認識 (AudioWorklet版) ---
