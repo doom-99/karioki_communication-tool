@@ -119,7 +119,7 @@ function initWebRTC() {
                 document.getElementById('syncStatus').innerHTML = `${checkIcon} <span style="color:#4caf50;">すでに接続済みです</span>`;
                 return; // ★ここで処理を打ち切り、無駄な再接続やマイク権限の起動を完全に防ぐ
             }
-            
+
             activeRoomId = targetId; 
             setupInviteButtons(); 
             document.getElementById('syncStatus').innerHTML = `<span style="color:#0d6efd;">接続を準備中...</span>`;
@@ -214,7 +214,40 @@ function setupConnection(conn) {
         if (!connections.includes(conn)) connections.push(conn);
         updateSyncStatusUI();
         
-        // ★ 追加: 接続した直後に、自分の名前を相手に教える（自己紹介）
+        // ★ 追加: 再接続成功時などに警告トーストが出ていれば消す
+        if (window.hideWarningToast) window.hideWarningToast();
+        
+        // ★ 追加: WebRTCの物理的な通信状態（ICE）を厳密に監視する
+        if (conn.peerConnection) {
+            conn.peerConnection.oniceconnectionstatechange = () => {
+                const state = conn.peerConnection.iceConnectionState;
+                console.log("ICE State Changed:", state);
+                
+                if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+                    console.warn("P2P通信が切断されました。");
+                    
+                    if (window.showWarningToast) {
+                        window.showWarningToast("⚠️ 通信が不安定です。再接続中...", false);
+                    }
+                    
+                    // 内部のリストから削除してUIを更新
+                    connections = connections.filter(c => c !== conn);
+                    updateSyncStatusUI();
+                    if (isRoomHost) broadcastParticipantList();
+                    
+                    // 自分がゲスト（参加者）で、ホストのIDを覚えている場合は、3秒後に自動再接続を試みる
+                    if (!isRoomHost && activeRoomId) {
+                        setTimeout(() => {
+                            if (connections.length === 0) {
+                                connectToPeer(activeRoomId);
+                            }
+                        }, 3000);
+                    }
+                }
+            };
+        }
+
+        // 接続した直後に、自分の名前を相手に教える（自己紹介）
         setTimeout(() => {
             const myName = window.getMyName ? window.getMyName() : '名無し';
             try { conn.send({ type: 'hello', name: myName }); } catch(e){}

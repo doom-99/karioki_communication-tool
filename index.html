@@ -21,6 +21,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 </head>
 <body>
+    <div id="warningToast" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:9999; background-color:#F6AA00; color:#212529; padding:10px 20px; border-radius:30px; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.3); text-align:center; white-space:nowrap; animation:toastPop 0.3s forwards;">
+        ⚠️ 通信が切断されました
+    </div>
 
     <div id="nameEntryOverlay" class="name-entry-overlay">
         <div class="name-entry-card">

@@ -57,6 +57,21 @@ function getColorForName(name) {
 // ★ 追加: webrtc.js（参加者リストの描画）からも色を取得できるように window オブジェクトに公開する
 window.getColorForName = getColorForName;
 
+// ★ 追加: 警告トーストをコントロールするグローバル関数
+window.showWarningToast = function(msg, autoHide = false) {
+    const t = document.getElementById('warningToast');
+    if (!t) return;
+    t.innerHTML = msg;
+    t.style.display = 'block';
+    if (autoHide) {
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+};
+window.hideWarningToast = function() {
+    const t = document.getElementById('warningToast');
+    if (t) t.style.display = 'none';
+};
+
 // --- 修正: 確実にHTMLを読み込んでから要素を取得するように変更 ---
 let chatLog, sttInterim, ttsInput;
 
