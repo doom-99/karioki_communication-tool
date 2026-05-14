@@ -111,6 +111,15 @@ function initWebRTC() {
     document.getElementById('connectBtn').onclick = async () => {
         const targetId = document.getElementById('targetPeerId').value.trim();
         if (targetId) {
+            // ★ 追加: すでに接続済みの相手への二重接続（重複増殖バグ）を防止するガード処理
+            // connections の中に、ターゲットのIDと同じで、かつ通信が開いている(open)ものが存在するか判定
+            const isAlreadyConnected = connections.some(c => c.peer === targetId && c.open);
+            if (isAlreadyConnected) {
+                const checkIcon = `<svg class="ui-icon" style="color:#4caf50;" viewBox="0 -960 960 960"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-56-252 226-226-34-34-192 192-86-86-34 34 120 120Z"/></svg>`;
+                document.getElementById('syncStatus').innerHTML = `${checkIcon} <span style="color:#4caf50;">すでに接続済みです</span>`;
+                return; // ★ここで処理を打ち切り、無駄な再接続やマイク権限の起動を完全に防ぐ
+            }
+            
             activeRoomId = targetId; 
             setupInviteButtons(); 
             document.getElementById('syncStatus').innerHTML = `<span style="color:#0d6efd;">接続を準備中...</span>`;
