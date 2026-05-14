@@ -181,13 +181,13 @@ function setupInviteButtons() {
     };
 
     // スマホアイコンの定義
-    const phoneIcon = `<svg class="ui-icon" viewBox="0 -960 960 960"><path d="M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v720q0 33-23.5 56.5T680-40H280Zm0-200h400v-480H280v480Zm0 120h400v-40H280v40Zm0-680h400v-40H280v40Zm200 620q17 0 28.5-11.5T520-120q0-17-11.5-28.5T480-160q-17 0-28.5 11.5T440-120q0 17 11.5 28.5T480-80ZM280-840v40-40Zm0 760v-40 40Z"/></svg>`;
+    const phoneIcon = `<svg class="ui-icon" viewBox="0 -960 960 960" fill="currentColor"><path d="M520-120v-80h80v80h-80Zm-80-80v-200h80v200h-80Zm320-120v-160h80v160h-80Zm-80-160v-80h80v80h-80Zm-480 80v-80h80v80h-80Zm-80-80v-80h80v80h-80Zm360-280v-80h80v80h-80ZM180-660h120v-120H180v120Zm-60 60v-240h240v240H120Zm60 420h120v-120H180v120Zm-60 60v-240h240v240H120Zm540-540h120v-120H660v120Zm-60 60v-240h240v240H600Zm80 480v-120h-80v-80h160v120h80v80H680ZM520-400v-80h160v80H520Zm-160 0v-80h-80v-80h240v80h-80v80h-80Zm40-200v-160h80v80h80v80H400Zm-190-90v-60h60v60h-60Zm0 480v-60h60v60h-60Zm480-480v-60h60v60h-60Z"/></svg>`;
 
     qrBtn.onclick = () => {
         const container = document.getElementById('qrContainer');
         if (container.style.display === 'block') {
             container.style.display = 'none';
-            qrBtn.innerHTML = `${phoneIcon} QR表示`; // textContent を innerHTML に変更
+            qrBtn.innerHTML = `${phoneIcon} QRコード表示`; // textContent を innerHTML に変更
         } else {
             container.style.display = 'block';
             qrBtn.innerHTML = `${phoneIcon} 閉じる`; // textContent を innerHTML に変更
