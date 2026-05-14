@@ -349,13 +349,16 @@ function renderParticipantList(list) {
     ul.innerHTML = '';
     const myName = window.getMyName ? window.getMyName() : 'あなた';
     
-    // 自分を一番上に緑色で表示
-    ul.innerHTML += `<li><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#4caf50; margin-right:6px;"></span>${escapeHTML(myName)} <span style="font-size:0.85em; color:#666;">(あなた)</span></li>`;
+    // ★ 変更: 自分を一番上に表示し、色を自分の送信テキスト（CUDブルー）に合わせる
+    ul.innerHTML += `<li><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#005AFF; margin-right:6px;"></span>${escapeHTML(myName)} <span style="font-size:0.85em; color:#666;">(あなた)</span></li>`;
     
-    // 他の参加者を青色で表示
+    // ★ 変更: 他の参加者を、チャット画面で割り当てられた固有のテーマカラーで表示する
     list.forEach(name => {
         if (name !== myName) {
-            ul.innerHTML += `<li><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0d6efd; margin-right:6px;"></span>${escapeHTML(name)}</li>`;
+            // app.js から、その人に割り当てられた色の情報（枠線の色）を取得する
+            const remoteColorInfo = window.getColorForName ? window.getColorForName(name) : { border: '#0d6efd' };
+            
+            ul.innerHTML += `<li><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${remoteColorInfo.border}; margin-right:6px;"></span>${escapeHTML(name)}</li>`;
         }
     });
 }

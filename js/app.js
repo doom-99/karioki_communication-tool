@@ -54,6 +54,9 @@ function getColorForName(name) {
     return assignedColors[name];
 }
 
+// ★ 追加: webrtc.js（参加者リストの描画）からも色を取得できるように window オブジェクトに公開する
+window.getColorForName = getColorForName;
+
 // --- 修正: 確実にHTMLを読み込んでから要素を取得するように変更 ---
 let chatLog, sttInterim, ttsInput;
 
